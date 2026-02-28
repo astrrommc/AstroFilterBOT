@@ -33,7 +33,7 @@ class script(object):
 ‣ ʟɪʙʀᴀʀʏ : <a href='https://docs.pyrogram.org/'>ᴘʏʀᴏɢʀᴀᴍ</a> 
 ‣ ʟᴀɴɢᴜᴀɢᴇ : <a href='https://www.python.org/download/releases/3.0/'>ᴘʏᴛʜᴏɴ 3</a> 
 ‣ ᴅᴀᴛᴀ ʙᴀsᴇ : <a href='https://www.mongodb.com/'>ᴍᴏɴɢᴏ ᴅʙ</a> 
-‣ ʙᴜɪʟᴅ sᴛᴀᴛᴜs : ᴠ2.7.1 [sᴛᴀʙʟᴇ]></b>"""
+‣ ʙᴜɪʟᴅ ꜱᴛᴀᴛᴜꜱ : ᴠ1.0 [ꜱᴛᴀʙʟᴇ]</b>"""
 
     CLONE_TXT = """<b>🌟 <u>CLONE MODE</u>
 
@@ -744,6 +744,7 @@ Example:- /set_caption 📕 File Name: {filename}
 
 
     
+
 
 
 
