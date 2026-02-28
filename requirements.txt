@@ -19,7 +19,7 @@ wget
 aiofiles
 hachoir
 python-decouple 
-ffmpeg-static
+ffmpeg
 youtube_search
 pymongo[srv]==3.12.3 
 motor==2.5.1 
@@ -39,4 +39,5 @@ dnspython==2.3.0
 ffmpeg-python>=0.2.0
 openai==0.25.0
 git+https://github.com/Joelkb/cinemagoer
+
 
