@@ -25,7 +25,7 @@ async def save_file(media):
     
     file_id = unpack_new_file_id(media.file_id)
     file_name = clean_file_name(media.file_name)
-    new_file_name = f"{file_name}"
+    new_file_name = f"@Astro_AF_bot {file_name}"
     
     file = {
         'file_id': file_id,
@@ -175,5 +175,6 @@ def unpack_new_file_id(new_file_id):
     )
     return file_id
     
+
 
 
