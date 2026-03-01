@@ -14,13 +14,24 @@ async def make_carbon(code):
 
 @Client.on_message(filters.command("carbon"))
 async def carbon_func(b, message):
-    if not message.reply_to_message:
-        return await message.reply_text("ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴛᴇxᴛ ᴍᴇssᴀɢᴇ ᴛᴏ ᴍᴀᴋᴇ ᴄᴀʀʙᴏɴ.")
-    if not message.reply_to_message.text:
-        return await message.reply_text("ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴛᴇxᴛ ᴍᴇssᴀɢᴇ ᴛᴏ ᴍᴀᴋᴇ ᴄᴀʀʙᴏɴ.")
+    # Check if text was provided with command e.g. /carbon some text
+    if len(message.command) > 1:
+        text = message.text.split(None, 1)[1]
+    # Check if replying to a message
+    elif message.reply_to_message and message.reply_to_message.text:
+        text = message.reply_to_message.text
+    # Nothing provided
+    else:
+        return await message.reply_text(
+            "**How to use /carbon:**\n\n"
+            "1. Reply to any text message and send /carbon\n"
+            "2. Or send /carbon followed by your text\n\n"
+            "**Example:** `/carbon print('Hello World')`"
+        )
+
     m = await message.reply_text("ᴘʀᴏᴄᴇssɪɴɢ...")
     try:
-        carbon = await make_carbon(message.reply_to_message.text)
+        carbon = await make_carbon(text)
         await m.edit("ᴜᴘʟᴏᴀᴅɪɴɢ...")
         await message.reply_photo(
             photo=carbon,
