@@ -1,10 +1,10 @@
 from pyrogram import Client, filters
-from imdb import IMDb
+from imdb import Cinemagoer  # Updated library
 from Script import script
 import time
 
-# Initialize IMDb instance
-ia = IMDb()
+# Initialize Cinemagoer instance
+ia = Cinemagoer()
 
 @Client.on_message(filters.command("imdb"))
 async def imdb_search(bot, message):
@@ -13,23 +13,23 @@ async def imdb_search(bot, message):
 
     start_time = time.time()
     query = message.text.split(None, 1)[1]
-    m = await message.reply_text("<i>🔍 Searching IMDb... Please wait.</i>")
+    m = await message.reply_text("<i>🔍 Fetching details from IMDb...</i>")
 
     try:
-        # Initial search
+        # Search for the movie
         search_results = ia.search_movie(query)
         
-        # Fallback: if no results, try searching just the first word
+        # Fallback for better accuracy
         if not search_results:
             search_results = ia.search_movie(query.split()[0])
 
         if not search_results:
-            return await m.edit(f"<b>❌ No IMDb results found for:</b> <code>{query}</code>")
+            return await m.edit(f"<b>❌ No results found for:</b> <code>{query}</code>")
 
-        # Fetch full movie details
+        # Get full movie data
         movie = ia.get_movie(search_results[0].movieID)
 
-        # Extract details for the template in Script.py
+        # Build Caption using your Script.py template
         cap = script.IMDB_TEMPLATE_TXT.format(
             qurey=query,
             title=movie.get('title', 'N/A'),
@@ -54,5 +54,5 @@ async def imdb_search(bot, message):
             await m.edit(cap)
 
     except Exception as e:
-        await m.edit(f"<b>❌ Error:</b> <code>{str(e)}</code>")
+        await m.edit(f"<b>❌ IMDb Link Error:</b> <code>{str(e)}</code>")
         
