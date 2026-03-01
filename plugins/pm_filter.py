@@ -1096,37 +1096,78 @@ async def filter_qualities_cb_handler(client: Client, query: CallbackQuery):
                 
 @Client.on_callback_query()
 async def cb_handler(client: Client, query: CallbackQuery):
+
     if query.data == "close_data":
         await query.message.delete()
+        return
+
     elif query.data == "get_trail":
         user_id = query.from_user.id
         free_trial_status = await db.get_free_trial_status(user_id)
-        if not free_trial_status:            
+
+        if not free_trial_status:
             await db.give_free_trail(user_id)
-            new_text = "**ʏᴏᴜ ᴄᴀɴ ᴜsᴇ ꜰʀᴇᴇ ᴛʀᴀɪʟ ꜰᴏʀ 5 ᴍɪɴᴜᴛᴇs ꜰʀᴏᴍ ɴᴏᴡ 😀\n\nआप अब से 5 मिनट के लिए निःशुल्क ट्रायल का उपयोग कर सकते हैं 😀**"        
+            new_text = (
+                "**ʏᴏᴜ ᴄᴀɴ ᴜsᴇ ꜰʀᴇᴇ ᴛʀᴀɪʟ ꜰᴏʀ 5 ᴍɪɴᴜᴛᴇs ꜰʀᴏᴍ ɴᴏᴡ 😀\n\n"
+                "आप अब से 5 मिनट के लिए निःशुल्क ट्रायल का उपयोग कर सकते हैं 😀**"
+            )
             await query.message.edit_text(text=new_text)
             return
         else:
-            new_text= "**🤣 you already used free now no more free trail. please buy subscription here are our 👉 /plans**"
+            new_text = (
+                "**🤣 you already used free now no more free trail. "
+                "please buy subscription here are our 👉 /plans**"
+            )
             await query.message.edit_text(text=new_text)
             return
-            
-    elif query.data == "buy_premium":
-        btn = [[            
-            InlineKeyboardButton("✅sᴇɴᴅ ʏᴏᴜʀ ᴘᴀʏᴍᴇɴᴛ ʀᴇᴄᴇɪᴘᴛ ʜᴇʀᴇ ✅", url = OWNER_LINK)
-        ]
-            for admin in ADMINS
-        ]
-        btn.append(
-            [InlineKeyboardButton("⚠️ᴄʟᴏsᴇ / ᴅᴇʟᴇᴛᴇ⚠️", callback_data="close_data")]
+
+
+    elif query.data == "tts_info":
+        btn = [[
+            InlineKeyboardButton("⟸ Bᴀᴄᴋ", callback_data="help")
+        ]]
+
+        # Safely change image
+        try:
+            await query.message.edit_media(
+                InputMediaPhoto(random.choice(PICS))
+            )
+        except:
+            pass
+
+        await query.message.edit_text(
+            text=script.TTS_TXT,
+            reply_markup=InlineKeyboardMarkup(btn),
+            parse_mode=enums.ParseMode.HTML
         )
+        return
+
+
+    elif query.data == "buy_premium":
+
+        btn = [[
+            InlineKeyboardButton(
+                "✅ sᴇɴᴅ ʏᴏᴜʀ ᴘᴀʏᴍᴇɴᴛ ʀᴇᴄᴇɪᴘᴛ ʜᴇʀᴇ ✅",
+                url=OWNER_LINK
+            )
+        ]]
+
+        btn.append([
+            InlineKeyboardButton(
+                "⚠️ ᴄʟᴏsᴇ / ᴅᴇʟᴇᴛᴇ ⚠️",
+                callback_data="close_data"
+            )
+        ])
+
         reply_markup = InlineKeyboardMarkup(btn)
+
         await query.message.reply_photo(
             photo=PAYMENT_QR,
             caption=PAYMENT_TEXT,
             reply_markup=reply_markup
         )
-        return 
+        return
+        
     elif query.data == "gfiltersdeleteallconfirm":
         await del_allg(query.message, 'gfilters')
         await query.answer("Done !")
@@ -3281,6 +3322,7 @@ async def global_filters(client, message, text=False):
                 break
     else:
         return False
+
 
 
 
