@@ -108,7 +108,7 @@ async def start(client, message):
             size=get_size(files1['file_size'])
             f_caption=files1['caption']
             if f_caption is None:
-                f_caption = f"@VJ_Bots {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@'), files1['file_name'].split()))}"
+                f_caption = f"@Astro_AF_bot {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@'), files1['file_name'].split()))}"
             if cd["update_channel_link"] != None:
                 up = cd["update_channel_link"]
                 button = [[
@@ -156,7 +156,7 @@ async def start(client, message):
     size=get_size(files['file_size'])
     f_caption=files['caption']
     if f_caption is None:
-        f_caption = f"@VJ_Bots {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@'), files['file_name'].split()))}"
+        f_caption = f"@Astro_AF_bots {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@'), files['file_name'].split()))}"
     if cd["update_channel_link"] != None:
         up = cd["update_channel_link"]
         button = [[
