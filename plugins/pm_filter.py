@@ -1919,7 +1919,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
              InlineKeyboardButton('ꜱᴛɪᴄᴋᴇʀ-ɪᴅ', callback_data='sticker'),
              InlineKeyboardButton('ᴊ-ꜱᴏɴ', callback_data='json')
          ], [
-             InlineKeyboardButton('🎨 ᴄᴀʀʙᴏɴ', callback_data='carbon_help')
+             InlineKeyboardButton('ᴄᴀʀʙᴏɴ', callback_data='carbon_help')
          ], [             
              InlineKeyboardButton('🏠 𝙷𝙾𝙼𝙴 🏠', callback_data='start')
         ]]
