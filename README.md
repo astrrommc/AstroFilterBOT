@@ -5,7 +5,7 @@
   Astro Filter Bot
 </h1>
 
-![Typing SVG](https://readme-typing-svg.herokuapp.com/?lines=Welcome+To+VJ+Filter+Bot!)
+[![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Fira+Code&pause=1000&width=435&lines=Welcome+To+AstroFilterBOT+GitHub!)](https://git.io/typing-svg)
 </p>
 
 ## Main Feature 
@@ -206,6 +206,7 @@ Selling The Codes To Other People For Money Is *Strictly Prohibited*.</b>
 </pre>
 </p>
 </details>
+
 
 
 
