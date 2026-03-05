@@ -1,7 +1,3 @@
-# Don't Remove Credit @VJ_Bots
-# Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
 import io
 from info import ADMINS
 from pyrogram import filters, Client, enums
@@ -135,4 +131,5 @@ async def delallgfilters(client, message):
             ]),
             quote=True
         )
+
 
