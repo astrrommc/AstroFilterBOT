@@ -3,7 +3,7 @@ from imdb import Cinemagoer  # Updated library
 from Script import script
 import time
 
-# Initialize Cinemagoer instance
+
 ia = Cinemagoer()
 
 @Client.on_message(filters.command("imdb"))
@@ -16,20 +16,20 @@ async def imdb_search(bot, message):
     m = await message.reply_text("<i>🔍 Fetching details from IMDb...</i>")
 
     try:
-        # Search for the movie
+        
         search_results = ia.search_movie(query)
         
-        # Fallback for better accuracy
+        
         if not search_results:
             search_results = ia.search_movie(query.split()[0])
 
         if not search_results:
             return await m.edit(f"<b>❌ No results found for:</b> <code>{query}</code>")
 
-        # Get full movie data
+        
         movie = ia.get_movie(search_results[0].movieID)
 
-        # Build Caption using your Script.py template
+        
         cap = script.IMDB_TEMPLATE_TXT.format(
             qurey=query,
             title=movie.get('title', 'N/A'),
