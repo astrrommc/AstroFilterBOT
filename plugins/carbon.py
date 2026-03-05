@@ -14,13 +14,13 @@ async def make_carbon(code):
 
 @Client.on_message(filters.command("carbon"))
 async def carbon_func(b, message):
-    # Check if text was provided with command e.g. /carbon some text
+    
     if len(message.command) > 1:
         text = message.text.split(None, 1)[1]
-    # Check if replying to a message
+    
     elif message.reply_to_message and message.reply_to_message.text:
         text = message.reply_to_message.text
-    # Nothing provided
+    
     else:
         return await message.reply_text(
             "**How to use /carbon:**\n\n"
