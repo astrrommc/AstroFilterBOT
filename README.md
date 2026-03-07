@@ -2,7 +2,7 @@
   <img src="https://i.postimg.cc/kXFwf30p/original-4619a23b27caea40216f1e0b5d7687c6.png" alt="VJ-Filter-Bot Logo">
 </p>
 <h1 align="center">
-  Astro  Filter Bot
+  Astro Filter Bot
 </h1>
 
 [![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Fira+Code&pause=1000&width=435&lines=Welcome+To+AstroFilterBOT+GitHub!)](https://git.io/typing-svg)
@@ -203,6 +203,7 @@ Selling The Codes To Other People For Money Is *Strictly Prohibited*.</b>
 </pre>
 </p>
 </details>
+
 
 
 
