@@ -198,11 +198,12 @@ Edit info.py with variables as given below then run bot
 ## Disclaimer
 [![GNU Affero General Public License 2.0](https://www.gnu.org/graphics/agplv3-155x51.png)](https://www.gnu.org/licenses/agpl-3.0.en.html#header)    
 <b>Licensed under [GNU AGPL 2.0.](https://github.com/VJBots/VJ-Filter-Bot/blob/Tech_VJ/LICENSE)
-Selling The Codes To Other People For Money Is *Strictly Prohibited*.</b>
+Selling The Codes To Other People For Money Is *Strictly Prohibited*!.</b>
 
 </pre>
 </p>
 </details>
+
 
 
 
