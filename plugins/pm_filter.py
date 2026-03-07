@@ -1811,10 +1811,8 @@ async def cb_handler(client: Client, query: CallbackQuery):
             ],[
                 InlineKeyboardButton('ᴍᴏᴠɪᴇ ɢʀᴏᴜᴘ', url=GRP_LNK)
             ],[
-                InlineKeyboardButton('ʜᴇʟᴘ', callback_data='help'),
+                InlineKeyboardButton('Fᴇᴀᴛᴜʀᴇs', callback_data='help'),
                 InlineKeyboardButton('ᴀʙᴏᴜᴛ', callback_data='about')
-            ],[
-                InlineKeyboardButton('ᴘʀᴇᴍɪᴜᴍ ᴀɴᴅ ʀᴇғᴇʀʀᴀʟ', callback_data='subscription')
             ],[
                 InlineKeyboardButton('ᴊᴏɪɴ ᴜᴘᴅᴀᴛᴇ ᴄʜᴀɴɴᴇʟ', url=CHNL_LNK)
             ]]
@@ -1825,7 +1823,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
 
                 InlineKeyboardButton('ᴍᴏᴠɪᴇ ɢʀᴏᴜᴘ', url=GRP_LNK)
             ],[
-                InlineKeyboardButton('ʜᴇʟᴘ', callback_data='help'),
+                InlineKeyboardButton('Fᴇᴀᴛᴜʀᴇs', callback_data='help'),
                 InlineKeyboardButton('ᴀʙᴏᴜᴛ', callback_data='about')
             ],[
                 InlineKeyboardButton('ᴊᴏɪɴ ᴜᴘᴅᴀᴛᴇ ᴄʜᴀɴɴᴇʟ', url=CHNL_LNK)
@@ -1917,7 +1915,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
          ], [
              InlineKeyboardButton('ᴄᴀʀʙᴏɴ', callback_data='carbon_help')
          ], [             
-             InlineKeyboardButton('🏠 𝙷𝙾𝙼𝙴 🏠', callback_data='start')
+             InlineKeyboardButton('« Hᴏᴍᴇ »', callback_data='start')
         ]]
         reply_markup = InlineKeyboardMarkup(buttons)
         await client.edit_message_media(
@@ -2268,7 +2266,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
         ]]
         reply_markup = InlineKeyboardMarkup(btn)
         await query.message.edit_text(
-            text="🎨 <b>ᴄᴀʀʙᴏɴ</b>\n\nGenerate beautiful code screenshots.\n\n<b>Usage:</b>\n• <code>/carbon your code here</code>\n• Reply to any message and send /carbon",
+            text="<b>ᴄᴀʀʙᴏɴ</b>\n\nGenerate beautiful code screenshots.\n\n<b>Usage:</b>\n• <code>/carbon your code here</code>\n• Reply to any message and send /carbon",
             reply_markup=reply_markup,
             parse_mode=enums.ParseMode.HTML
         )
