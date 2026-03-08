@@ -37,7 +37,7 @@ async def doc(bot, update):
             path = await bot.download_media(
                     message=file,
                     progress=progress_for_pyrogram,
-                    progress_args=("**📥 Downloading**", ms, c_time))
+                    progress_args=("**📥 Uploading File To My Server...**", ms, c_time))
         except Exception as e:
             return await ms.edit(f"Download Error: {e}")
 
@@ -70,7 +70,7 @@ async def doc(bot, update):
             img.resize((320, 320)).save(ph_path, "JPEG")
 
         # Visual Handover Alert
-        await ms.edit("✅ **Download Complete!**\n🚀 **Sending File to Telegram...**")
+        await ms.edit("✅ **Renaming Completed!**\n🚀 **Sending File to Telegram...**")
         
         c_time = time.time() 
         try:
@@ -91,7 +91,7 @@ async def doc(bot, update):
                     thumb=ph_path,
                     duration=duration,
                     progress=progress_for_pyrogram,
-                    progress_args=("**📤 Uploading**", ms, c_time)) 
+                    progress_args=("🚀 **Sending File to Telegram...", ms, c_time)) 
            elif type == "audio": 
                await bot.send_audio(
                     update.message.chat.id,
@@ -100,7 +100,7 @@ async def doc(bot, update):
                     thumb=ph_path,
                     duration=duration,
                     progress=progress_for_pyrogram,
-                    progress_args=("**📤 Uploading**", ms, c_time)) 
+                    progress_args=("🚀 **Sending File to Telegram...", ms, c_time)) 
         except Exception as e: 
             return await ms.edit(f"Upload Error: {e}") 
             
