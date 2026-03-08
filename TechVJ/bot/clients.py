@@ -31,9 +31,8 @@ async def initialize_clients():
                 api_id=API_ID,
                 api_hash=API_HASH,
                 bot_token=token,
-                # Increased workers to 300 to fully saturate your 48.5 Mbps upload
+                # FIXED: Increased workers to 300 to match main bot performance
                 workers=300, 
-                # Set sleep_threshold to 60 to handle heavy Telegram traffic without hanging
                 sleep_threshold=60,
                 no_updates=True,
                 in_memory=True
@@ -44,15 +43,14 @@ async def initialize_clients():
         except Exception:
             logging.error(f"Failed starting Client - {client_id} Error:", exc_info=True)
     
-    # Using asyncio.gather to start all worker clients in parallel for faster boot-up
+    # Parallel initialization for faster bot startup
     clients = await asyncio.gather(*[start_client(i, token) for i, token in all_tokens.items()])
     multi_clients.update(dict(clients))
     
     if len(multi_clients) != 1:
-        # Global variable updated to enable multi-client load balancing
         global MULTI_CLIENT
         MULTI_CLIENT = True
         print("Multi-Client Mode Enabled (Maximum Speed Mode)")
     else:
         print("No additional clients were initialized, using default client")
-        
+            
