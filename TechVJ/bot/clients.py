@@ -31,7 +31,8 @@ async def initialize_clients():
                 bot_token=token,
                 sleep_threshold=SLEEP_THRESHOLD,
                 no_updates=True,
-                in_memory=True
+                in_memory=True,
+                workers=100  # <--- FIXED: Set workers to 100 for high-speed PC renaming
             ).start()
             work_loads[client_id] = 0
             return client_id, client
@@ -45,4 +46,4 @@ async def initialize_clients():
         print("Multi-Client Mode Enabled")
     else:
         print("No additional clients were initialized, using default client")
-
+        
