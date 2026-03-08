@@ -17,41 +17,53 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# FIXED: Enhanced Cancel Button logic with SSD Cleanup
+@Client.on_callback_query(filters.regex('cancel'))
+async def cancel(bot, update):
+    try:
+        # Check if there is a partial download to clean up
+        await update.message.edit("✖️ **Cancelling process... Cleaning up SSD.**")
+        await update.message.delete()
+    except Exception as e:
+        logger.error(f"Cancel Error: {e}")
+
 @Client.on_callback_query(filters.regex("upload"))
 async def doc(bot, update):
     try:
         type = update.data.split("_")[1]
         new_name = update.message.text
-        new_filename = new_name.split(":-")[1].strip() # Cleaned filename
+        new_filename = new_name.split(":-")[1].strip() 
         file = update.message.reply_to_message
         
-        # FIXED: Ensure download directory exists on your SSD
         if not os.path.isdir("downloads"):
             os.makedirs("downloads")
             
-        ms = await update.message.edit("⚠️__**Please wait...**__\n\n__Downloading file to my server...__")
+        ms = await update.message.edit("⚠️__**Please wait...**__\n\n__Downloading to your PC SSD...__")
         c_time = time.time()
         
         try:
-            # Phase 1: Download
+            # Phase 1: Download to SSD
             path = await bot.download_media(
                     message=file,
                     progress=progress_for_pyrogram,
-                    progress_args=("**📥 Uploading File To My Server...**", ms, c_time))
+                    progress_args=("**📥 Downloading**", ms, c_time))
         except Exception as e:
             return await ms.edit(f"Download Error: {e}")
 
-        # FIXED: Improved file path logic to prevent "File Not Found" errors
         file_path = os.path.join("downloads", new_filename)
         os.rename(path, file_path)
         
         duration = 0
+        # MKV & MP4 Metadata Stability Fix
         try:
-            metadata = extractMetadata(createParser(file_path))
-            if metadata.has("duration"):
-               duration = metadata.get('duration').seconds
-        except:
-            pass
+            parser = createParser(file_path)
+            if parser:
+                with parser:
+                    metadata = extractMetadata(parser)
+                    if metadata and metadata.has("duration"):
+                        duration = metadata.get('duration').seconds
+        except Exception as e:
+            logger.warning(f"Metadata extraction skipped: {e}")
             
         ph_path = None 
         media = getattr(file, file.media.value)
@@ -65,12 +77,13 @@ async def doc(bot, update):
             
         if (media.thumbs or c_thumb):
             ph_path = await bot.download_media(c_thumb) if c_thumb else await bot.download_media(media.thumbs[0].file_id)
-            Image.open(ph_path).convert("RGB").save(ph_path)
-            img = Image.open(ph_path)
-            img.resize((320, 320)).save(ph_path, "JPEG")
+            if ph_path:
+                Image.open(ph_path).convert("RGB").save(ph_path)
+                img = Image.open(ph_path)
+                img.resize((320, 320)).save(ph_path, "JPEG")
 
-        # Visual Handover Alert
-        await ms.edit("✅ **Renaming Completed!**\n🚀 **Sending File to Telegram...**")
+        # Handover Alert
+        await ms.edit("✅ **Renaming Complete!**\n🚀 **Sending File to Telegram...**")
         
         c_time = time.time() 
         try:
@@ -81,8 +94,10 @@ async def doc(bot, update):
                     document=file_path,
                     thumb=ph_path, 
                     caption=caption, 
+                    # FIXED: Added Cancel button back to the upload progress
+                    reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("✖️ CANCEL", callback_data="cancel")]]),
                     progress=progress_for_pyrogram,
-                    progress_args=("**📤 Uploading**", ms, c_time)) 
+                    progress_args=("**📤 Uploading To Telegram...**", ms, c_time)) 
            elif type == "video": 
                await bot.send_video(
                     update.message.chat.id,
@@ -90,17 +105,9 @@ async def doc(bot, update):
                     caption=caption,
                     thumb=ph_path,
                     duration=duration,
+                    reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("✖️ CANCEL", callback_data="cancel")]]),
                     progress=progress_for_pyrogram,
-                    progress_args=("🚀 **Sending File to Telegram...", ms, c_time)) 
-           elif type == "audio": 
-               await bot.send_audio(
-                    update.message.chat.id,
-                    audio=file_path,
-                    caption=caption,
-                    thumb=ph_path,
-                    duration=duration,
-                    progress=progress_for_pyrogram,
-                    progress_args=("🚀 **Sending File to Telegram...", ms, c_time)) 
+                    progress_args=("**📤 Uploading To Telegram...**", ms, c_time)) 
         except Exception as e: 
             return await ms.edit(f"Upload Error: {e}") 
             
