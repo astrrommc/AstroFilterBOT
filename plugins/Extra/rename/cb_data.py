@@ -86,7 +86,7 @@ async def doc(bot, update):
                 img.resize((320, 320)).save(ph_path, "JPEG")
 
         # Visual Handover Alert to stop the 100% hang
-        await ms.edit("✅ **Download Complete!**\n🚀 **Sending File to Telegram via 300 Workers...**")
+        await ms.edit("✅ **Renaming Complete!**\n🚀 **Sending File to Telegram...**")
         
         c_time = time.time() 
         try:
@@ -102,7 +102,7 @@ async def doc(bot, update):
                     caption=caption, 
                     reply_markup=markup,
                     progress=progress_for_pyrogram,
-                    progress_args=("**📤 Uploading**", ms, c_time)) 
+                    progress_args=("**📤 Uploading File To Telegram...**", ms, c_time)) 
            elif type == "video": 
                await bot.send_video(
                     update.message.chat.id,
@@ -112,7 +112,7 @@ async def doc(bot, update):
                     duration=duration,
                     reply_markup=markup,
                     progress=progress_for_pyrogram,
-                    progress_args=("**📤 Uploading**", ms, c_time)) 
+                    progress_args=("**📤 Uploading File To Telegram...**", ms, c_time)) 
            elif type == "audio": 
                await bot.send_audio(
                     update.message.chat.id,
@@ -122,7 +122,7 @@ async def doc(bot, update):
                     duration=duration,
                     reply_markup=markup,
                     progress=progress_for_pyrogram,
-                    progress_args=("**📤 Uploading**", ms, c_time)) 
+                    progress_args=("**📤 Uploading File To Telegram...**", ms, c_time)) 
         except Exception as e: 
             # Cleanup SSD if upload fails
             if os.path.exists(file_path): os.remove(file_path)
