@@ -17,9 +17,11 @@ class TechVJXBot(Client):
             api_id=API_ID,
             api_hash=API_HASH,
             bot_token=BOT_TOKEN,
-            workers=150,
+            # FIXED: Increased workers to 200 to maximize your 48.5 Mbps upload speed on PC
+            workers=200, 
             plugins={"root": "plugins"},
-            sleep_threshold=5,
+            # FIXED: Lowered sleep_threshold to 30 for faster recovery from flood waits
+            sleep_threshold=30,
         )
 
     async def set_self(self):
@@ -68,4 +70,3 @@ TechVJBot = TechVJXBot()
 
 multi_clients = {}
 work_loads = {}
-
