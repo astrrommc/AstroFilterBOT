@@ -17,10 +17,10 @@ class TechVJXBot(Client):
             api_id=API_ID,
             api_hash=API_HASH,
             bot_token=BOT_TOKEN,
-            # MAXIMIZED: 300 workers allow for maximum parallel data streams on your PC
+            # MAXIMIZED: 300 workers allow your PC to fully saturate your 48.5 Mbps upload
             workers=300, 
             plugins={"root": "plugins"},
-            # OPTIMIZED: Increased threshold to 60 to prevent unnecessary hanging
+            # STABILITY: Higher threshold prevents the bot from hanging during heavy traffic
             sleep_threshold=60,
         )
 
@@ -33,29 +33,6 @@ class TechVJXBot(Client):
         limit: int,
         offset: int = 0,
     ) -> Optional[AsyncGenerator["types.Message", None]]:
-        """Iterate through a chat sequentially.
-        This convenience method does the same as repeatedly calling :meth:`~pyrogram.Client.get_messages` in a loop, thus saving
-        you from the hassle of setting up boilerplate code. It is useful for getting the whole chat messages with a
-        single call.
-        Parameters:
-            chat_id (``int`` | ``str``):
-                Unique identifier (int) or username (str) of the target chat.
-                For your personal cloud (Saved Messages) you can simply use "me" or "self".
-                For a contact that exists in your Telegram address book you can use his phone number (str).
-                
-            limit (``int``):
-                Identifier of the last message to be returned.
-                
-            offset (``int``, *optional*):
-                Identifier of the first message to be returned.
-                Defaults to 0.
-        Returns:
-            ``Generator``: A generator yielding :obj:`~pyrogram.types.Message` objects.
-        Example:
-            .. code-block:: python
-                for message in app.iter_messages("pyrogram", 1, 15000):
-                    print(message.text)
-        """
         current = offset
         while True:
             new_diff = min(200, limit - current)
