@@ -1,11 +1,6 @@
-# Don't Remove Credit @VJ_Bots
-# Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
 import traceback
 from asyncio import get_running_loop
 from io import BytesIO
-from googletrans import Translator
 from gtts import gTTS
 from pyrogram import Client, filters
 from pyrogram.types import Message
@@ -13,19 +8,18 @@ from pyrogram.types import Message
 
 def convert(text):
     audio = BytesIO()
-    i = Translator().translate(text, dest="en")
-    lang = i.src
-    tts = gTTS(text, lang=lang)
-    audio.name = lang + ".mp3"
+    tts = gTTS(text)
+    audio.name = "tts.mp3"
     tts.write_to_fp(audio)
+    audio.seek(0)
     return audio
 
 
 @Client.on_message(filters.command("tts"))
 async def text_to_speech(bot, message: Message):
-    vj = await bot.ask(chat_id = message.from_user.id, text = "Now send me your text.")
+    vj = await bot.ask(chat_id=message.from_user.id, text="Now send me your text.")
     if vj.text:
-        m = await vj.reply_text("Processing")
+        m = await vj.reply_text("Processing...")
         text = vj.text
         try:
             loop = get_running_loop()
@@ -34,11 +28,7 @@ async def text_to_speech(bot, message: Message):
             await m.delete()
             audio.close()
         except Exception as e:
-            await m.edit(e)
-            e = traceback.format_exc()
-            print(e)
+            await m.edit(str(e))
+            print(traceback.format_exc())
     else:
         await vj.reply_text("Send me only text Buddy.")
-
-
-

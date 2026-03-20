@@ -17,11 +17,10 @@ class TechVJXBot(Client):
             api_id=API_ID,
             api_hash=API_HASH,
             bot_token=BOT_TOKEN,
-            # MAXIMIZED: 300 workers allow your PC to fully saturate your 48.5 Mbps upload
-            workers=300, 
+            workers=300,
             plugins={"root": "plugins"},
-            # STABILITY: Higher threshold prevents the bot from hanging during heavy traffic
             sleep_threshold=60,
+            max_concurrent_transmissions=10,  # Use up to 10 parallel connections for transfers
         )
 
     async def set_self(self):

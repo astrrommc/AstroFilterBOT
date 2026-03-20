@@ -1,8 +1,3 @@
-# Don't Remove Credit @VJ_Bots
-# Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
-
 import re
 from os import environ
 from Script import script 
@@ -13,7 +8,8 @@ id_pattern = re.compile(r'^.\d+$')
 SESSION = environ.get('SESSION', 'TechVJBot')
 API_ID = int(environ.get('API_ID', '25066187'))
 API_HASH = environ.get('API_HASH', '4cbb616dea66bf2b8ea81c6bc571a8ce')
-BOT_TOKEN = environ.get('BOT_TOKEN', "")
+BOT_TOKEN = environ.get('BOT_TOKEN', "7335128376:AAE1BlncO6jQ6H4B7py2S_8byQBXqQbU7a0")
+MULTI_TOKENS = environ.get("MULTI_TOKENS", "8528928650:AAE9CVwvF4MKxSWT-_CKWAwdmUtfFQBFKDw 7240337616:AAEH3bzELjXWZzb-feC7ebRTb_lO-5cv0Dw 6578614631:AAF92khLO_yjzsVtppanObqZKrqf9Kf1us4 6941611532:AAEG6-BKjoXO-LttBEe_QWsGbuGAcoYFIsU 6757295073:AAE0kcoqzkfk827k_ha0QU3HV3-VSz94hJw").split()
 
 
 # This Pictures Is For Start Message Picture, You Can Add Multiple By Giving One Space Between Each.
@@ -58,9 +54,8 @@ FILE_STORE_CHANNEL = [int(ch) for ch in (environ.get('FILE_STORE_CHANNEL', '')).
 DELETE_CHANNELS = [int(dch) if id_pattern.search(dch) else dch for dch in environ.get('DELETE_CHANNELS', '0').split()]  # For Multiple Id Use One Space Between Each.
 
 
-# MongoDB information
-DATABASE_URI = environ.get('DATABASE_URI', "")   # IF Multiple Database Is False Then Fill Only This Database Url.
-DATABASE_NAME = environ.get('DATABASE_NAME', "")
+DATABASE_URI = environ.get('DATABASE_URI', "mongodb+srv://athrv:ATHRVRG09124@cluster0.g7kbgvs.mongodb.net/astro?retryWrites=true&w=majority")
+DATABASE_NAME = environ.get('DATABASE_NAME', "Cluster0")
 COLLECTION_NAME = environ.get('COLLECTION_NAME', 'vjcollection')
 
 MULTIPLE_DATABASE = bool(environ.get('MULTIPLE_DATABASE', False)) # Set True or False
@@ -88,7 +83,7 @@ PUBLIC_FILE_CHANNEL = environ.get('PUBLIC_FILE_CHANNEL', '') # Public Channel Us
 
 
 # Links
-GRP_LNK = environ.get('GRP_LNK', 'https://t.me/astrobotmvs')
+GRP_LNK = environ.get('GRP_LNK', 'https://t.me/SpaceMoviZ')
 CHNL_LNK = environ.get('CHNL_LNK', 'https://t.me/AstroBotUpdates')
 SUPPORT_CHAT = environ.get('SUPPORT_CHAT', 'AstroBotSupport') # Support Chat Link Without https:// or @
 OWNER_LNK = environ.get('OWNER_LNK', 'https://t.me/DevAstrro')
@@ -134,7 +129,7 @@ TUTORIAL = environ.get('TUTORIAL', '') # How Open Shortner Link Video Link , Cha
 # Others
 CACHE_TIME = int(environ.get('CACHE_TIME', 1800))
 MAX_B_TN = environ.get("MAX_B_TN", "5")
-PORT = environ.get("PORT", "8080")
+PORT = environ.get("PORT", "9090")
 MSG_ALRT = environ.get('MSG_ALRT', 'You are in 𝗔𝘀𝘁𝗿𝗼\'s Experience⚡')
 CUSTOM_FILE_CAPTION = environ.get("CUSTOM_FILE_CAPTION", f"{script.CAPTION}")
 BATCH_FILE_CAPTION = environ.get("BATCH_FILE_CAPTION", CUSTOM_FILE_CAPTION)
@@ -144,15 +139,12 @@ MAX_LIST_ELM = environ.get("MAX_LIST_ELM", None)
 
 # Choose Option Settings 
 LANGUAGES = ["malayalam", "mal", "tamil", "tam" ,"english", "eng", "hindi", "hin", "telugu", "tel", "kannada", "kan"]
-SEASONS = ["season 1", "season 2", "season 3", "season 4", "season 5", "season 6", "season 7", "season 8", "season 9", "season 10"]
+SEASONS = ["S01", "S1", "S02", "S2", "S03", "S3", "S04", "S4", "S05", "S5", "S06", "S6", "S07", "S7", "S08", "S8", "S09", "S9", "S10", "S11", "S12"]
 EPISODES = ["E01", "E02", "E03", "E04", "E05", "E06", "E07", "E08", "E09", "E10", "E11", "E12", "E13", "E14", "E15", "E16", "E17", "E18", "E19", "E20", "E21", "E22", "E23", "E24", "E25", "E26", "E27", "E28", "E29", "E30", "E31", "E32", "E33", "E34", "E35", "E36", "E37", "E38", "E39", "E40"]
-QUALITIES = ["360p", "480p", "720p", "1080p", "1440p", "2160p"]
+QUALITIES = ["360p", "480p", "720p", "1080p", "4K", "2160p", "WEBDL", "WEB-DL", "BluRay", "HDCAM", "HDRip"]
 YEARS = ["1900", "1991", "1992", "1993", "1994", "1995", "1996", "1997", "1998", "1999", "2000", "2001", "2002", "2003", "2004", "2005", "2006", "2007", "2008", "2009", "2010", "2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"]
 
 
-                           # Don't Remove Credit @VJ_Bots
-                           # Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-                           # Ask Doubt on telegram @KingVJ01
 
 
 # Online Stream and Download
@@ -178,7 +170,7 @@ AUTO_APPROVE_MODE = bool(environ.get('AUTO_APPROVE_MODE', False)) # Set True or 
 
 
 # Start Command Reactions
-REACTIONS = ["🤝", "🤗", "👍", "😐", "🤣", "👏", "😈", "🎉", "⚡️", "😎", "🏆", "🔥", "🆒"] #don't add any emoji because tg not support all emoji reactions
+REACTIONS = ["🤝", "👍", "😐", "🤣", "👏", "😈", "🎉", "⚡️", "😎", "🏆", "🔥", "🆒"] #don't add any emoji because tg not support all emoji reactions
 
 
 if MULTIPLE_DATABASE == False:
@@ -193,9 +185,6 @@ else:
     SEC_FILE_DB_URI = S_DB_URI    # This Db is for File Data Store When First Db Is Going To Be Full.
 
 
-# Don't Remove Credit @VJ_Bots
-# Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-# Ask Doubt on telegram @KingVJ01
 
 
 

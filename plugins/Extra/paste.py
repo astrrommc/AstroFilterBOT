@@ -1,70 +1,48 @@
-# Don't Remove Credit @VJ_Bots
-# Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
 import os
-import re
-import json
 import aiohttp
-import requests
+import ssl
 from pyrogram import Client, filters
 
-#Headers
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.104 Safari/537.36",
-    "content-type": "application/json",
-}
-
-#Pastebins
-async def p_paste(message, extension=None):
-    siteurl = "https://pasty.lus.pm/api/v1/pastes"
-    data = {"content": message}
+async def p_paste(content):
+    ssl_ctx = ssl.create_default_context()
+    ssl_ctx.check_hostname = False
+    ssl_ctx.verify_mode = ssl.CERT_NONE
+    connector = aiohttp.TCPConnector(ssl=ssl_ctx)
     try:
-        response = requests.post(url=siteurl, data=json.dumps(data), headers=headers)
+        async with aiohttp.ClientSession(connector=connector) as session:
+            async with session.post(
+                "https://katb.in/api/paste",
+                json={"paste": {"content": content}},
+                timeout=aiohttp.ClientTimeout(total=15)
+            ) as response:
+                if response.status in [200, 201]:
+                    data = await response.json(content_type=None)
+                    key = data.get("id")
+                    if key:
+                        return {"url": f"https://katb.in/{key}"}
     except Exception as e:
-        return {"error": str(e)}
-    if response.ok:
-        response = response.json()
-        purl = (
-            f"https://pasty.lus.pm/{response['id']}.{extension}"
-            if extension
-            else f"https://pasty.lus.pm/{response['id']}.txt"
-        )
-        return {
-            "url": purl,
-            "raw": f"https://pasty.lus.pm/{response['id']}/raw",
-            "bin": "Pasty",
-        }
-    return {"error": "Unable to reach pasty.lus.pm"}
-
+        print(f"katbin failed: {e}")
+    return {"error": "Paste failed. Check your internet connection."}
 
 
 @Client.on_message(filters.command(["tgpaste", "pasty", "paste"]))
 async def pasty(client, message):
-    pablo = await message.reply_text("`Please wait...`")
-    tex_t = message.text
-    if ' ' in message.text:
-        message_s = message.text.split(" ", 1)[1]
+    pablo = await message.reply_text("`Pʀᴏᴄᴇssɪɴɢ ʏᴏᴜʀ ᴘᴀsᴛᴇ...`")
+    message_s = None
+    if len(message.command) > 1:
+        message_s = message.text.split(None, 1)[1]
     elif message.reply_to_message:
-        message_s = message.reply_to_message.text
-    else:
-        await message.reply("sorry no in put. please repy to a text or /paste with text")
-    if not tex_t:
-        if not message.reply_to_message:
-            await pablo.edit("`Only text and documents are supported.`")
-            return
-        if not message.reply_to_message.text:
-            file = await message.reply_to_message.download()
-            m_list = open(file, "r").read()
-            message_s = m_list
-            os.remove(file)
-        elif message.reply_to_message.text:
+        if message.reply_to_message.text:
             message_s = message.reply_to_message.text
-
-    ext = "py"
-    x = await p_paste(message_s, ext)
-    p_link = x["url"]
-    p_raw = x["raw"]
-
-    pasted = f"**Successfully Paste to Pasty**\n\n**Link:** • [Click here]({p_link})\n\n**Raw Link:** • [Click here]({p_raw})"
+        elif message.reply_to_message.document:
+            path = await message.reply_to_message.download()
+            with open(path, "r", encoding="utf-8", errors="ignore") as f:
+                message_s = f.read()
+            os.remove(path)
+    if not message_s or len(message_s.strip()) == 0:
+        return await pablo.edit("❌ **Eʀʀᴏʀ:** Nᴏ ᴛᴇxᴛ ғᴏᴜɴᴅ.")
+    x = await p_paste(message_s)
+    if "error" in x:
+        return await pablo.edit(f"❌ **Pᴀsᴛᴇ Eʀʀᴏʀ:** `{x['error']}`")
+    pasted = f"✅ **Sᴜᴄᴄᴇssғᴜʟʟʏ Gᴇɴᴇʀᴀᴛᴇᴅ Pᴀsᴛᴇ**\n\n**🔗 Lɪɴᴋ:** {x['url']}"
     await pablo.edit(pasted, disable_web_page_preview=True)

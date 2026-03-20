@@ -1,8 +1,3 @@
-# Don't Remove Credit @VJ_Bots
-# Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
-
 import os
 from plugins.Extra.fotnt_string import Fonts
 from pyrogram import Client, filters
@@ -47,7 +42,7 @@ async def style_buttons(c, m, cb=False):
             title = m.text.split(" ", 1)[1]
             await m.reply_text(title, reply_markup=InlineKeyboardMarkup(buttons), reply_to_message_id=m.id)                     
         else:
-            await m.reply_text(text="Ente Any Text Eg:- `/font [text]`")    
+            await m.reply_text(text="**📝 Font Changer**\n\n**Usage:**\n`/font` text")    
     else:
         await m.answer()
         await m.message.edit_reply_markup(InlineKeyboardMarkup(buttons))

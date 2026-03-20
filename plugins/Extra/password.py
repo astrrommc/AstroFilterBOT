@@ -1,7 +1,3 @@
-# Don't Remove Credit @VJ_Bots
-# Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
 import random, os
 from info import CHNL_LNK
 from pyrogram import Client, filters, enums 
@@ -19,6 +15,6 @@ async def password(bot, update):
         qw = random.choice(ST)
     limit = int(qw)
     random_value = "".join(random.sample(password, limit))
-    txt = f"<b>Limit:</b> {str(limit)} \n<b>Password: <code>{random_value}</code>"
+    txt = f"<b>Length:</b> {str(limit)} \n<b>Password: <code>{random_value}</code>"
     btn = InlineKeyboardMarkup([[InlineKeyboardButton('Update Channel', url=CHNL_LNK)]])
     await message.edit_text(text=txt, reply_markup=btn, parse_mode=enums.ParseMode.HTML)

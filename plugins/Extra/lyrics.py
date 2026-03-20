@@ -1,7 +1,3 @@
-# Don't Remove Credit @VJ_Bots
-# Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton 
 from info import CHNL_LNK
@@ -37,7 +33,7 @@ def lyrics(song):
     fin = search(song)
     text = f'**🎶 Sᴜᴄᴄᴇꜱꜰᴜʟʟy Exᴛʀᴀᴄᴛᴇᴅ Lyɪʀɪᴄꜱ Oꜰ {song}**\n\n'
     text += f'`{fin["lyrics"]}`'
-    text += '\n\n\n**Made By Artificial Intelligence**'
+    text += '\n\n\n**Transmitted By:** @Astro_AF_Bot'
     return text
 
 

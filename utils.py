@@ -1,11 +1,6 @@
-# Don't Remove Credit @VJ_Bots
-# Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
 import logging, asyncio, os, re, random, pytz, aiohttp, requests, string, json, http.client
 from info import *
-from imdb import Cinemagoer 
-from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from pyrogram import enums
 from pyrogram.errors import *
 from typing import Union
@@ -22,13 +17,12 @@ logger.setLevel(logging.INFO)
 join_db = JoinReqs
 BTN_URL_REGEX = re.compile(r"(\[([^\[]+?)\]\((buttonurl|buttonalert):(?:/{0,2})(.+?)(:same)?\))")
 
-imdb = Cinemagoer() 
 TOKENS = {}
 VERIFIED = {}
 BANNED = {}
 SECOND_SHORTENER = {}
-SMART_OPEN = '“'
-SMART_CLOSE = '”'
+SMART_OPEN = '\u201c'
+SMART_CLOSE = '\u201d'
 START_CHAR = ('\'', '"', SMART_OPEN)
 
 # temp db for banned 
@@ -93,84 +87,100 @@ async def is_subscribed(bot, query):
                 return True
         return False
 
+OMDB_API_KEY = "3cb46508"
+
 async def get_poster(query, bulk=False, id=False, file=None):
     if not id:
-        query = (query.strip()).lower()
+        query = query.strip()
         title = query
         year = re.findall(r'[1-2]\d{3}$', query, re.IGNORECASE)
         if year:
-            year = list_to_str(year[:1])
-            title = (query.replace(year, "")).strip()
+            year = year[0]
+            title = query.replace(year, "").strip()
         elif file is not None:
-            year = re.findall(r'[1-2]\d{3}', file, re.IGNORECASE)
-            if year:
-                year = list_to_str(year[:1]) 
+            year_match = re.findall(r'[1-2]\d{3}', file, re.IGNORECASE)
+            year = year_match[0] if year_match else None
         else:
             year = None
-        movieid = imdb.search_movie(title.lower(), results=10)
-        if not movieid:
-            return None
+
+        # Search OMDB
+        params = {"s": title, "apikey": OMDB_API_KEY}
         if year:
-            filtered=list(filter(lambda k: str(k.get('year')) == str(year), movieid))
-            if not filtered:
-                filtered = movieid
-        else:
-            filtered = movieid
-        movieid=list(filter(lambda k: k.get('kind') in ['movie', 'tv series'], filtered))
-        if not movieid:
-            movieid = filtered
+            params["y"] = year
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get("https://www.omdbapi.com/", params=params) as resp:
+                    data = await resp.json()
+        except Exception as e:
+            logger.error(f"OMDB search error: {e}")
+            return None
+
+        if data.get("Response") != "True" or not data.get("Search"):
+            return None
+
+        results = data["Search"]
         if bulk:
-            return movieid
-        movieid = movieid[0].movieID
+            # FIX: Returns a list of dictionaries with correctly mapped keys for misc.py
+            # This ensures 'title' and 'year' are found, preventing "Unknown" buttons.
+            return [{
+                'title': m.get('Title', 'Unknown'),
+                'year': m.get('Year', ''),
+                'movieID': m.get('imdbID', '').replace('tt', ''),
+                'imdb_id': m.get('imdbID'),
+                'kind': m.get('Type', 'movie'),
+                'poster': m.get('Poster') if m.get('Poster') != 'N/A' else None
+            } for m in results]
+
+        movieid = results[0].get("imdbID", "")
     else:
-        movieid = query
-    movie = imdb.get_movie(movieid)
-    if not movie:
+        movieid = query if query.startswith("tt") else f"tt{query}"
+
+    # Fetch full movie details
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get("https://www.omdbapi.com/", params={"i": movieid, "apikey": OMDB_API_KEY, "plot": "full"}) as resp:
+                movie = await resp.json()
+    except Exception as e:
+        logger.error(f"OMDB fetch error: {e}")
         return None
-    if movie.get("original air date"):
-        date = movie["original air date"]
-    elif movie.get("year"):
-        date = movie.get("year")
-    else:
-        date = "N/A"
-    plot = ""
-    if not LONG_IMDB_DESCRIPTION:
-        plot = movie.get('plot')
-        if plot and len(plot) > 0:
-            plot = plot[0]
-    else:
-        plot = movie.get('plot outline')
+
+    if movie.get("Response") != "True":
+        return None
+
+    plot = movie.get("Plot", "N/A")
     if plot and len(plot) > 800:
-        plot = plot[0:800] + "..."
+        plot = plot[:800] + "..."
+
+    imdb_id = movie.get("imdbID", movieid)
 
     return {
-        'title': movie.get('title'),
-        'votes': movie.get('votes'),
-        "aka": list_to_str(movie.get("akas")),
-        "seasons": movie.get("number of seasons"),
-        "box_office": movie.get('box office'),
-        'localized_title': movie.get('localized title'),
-        'kind': movie.get("kind"),
-        "imdb_id": f"tt{movie.get('imdbID')}",
-        "cast": list_to_str(movie.get("cast")),
-        "runtime": list_to_str(movie.get("runtimes")),
-        "countries": list_to_str(movie.get("countries")),
-        "certificates": list_to_str(movie.get("certificates")),
-        "languages": list_to_str(movie.get("languages")),
-        "director": list_to_str(movie.get("director")),
-        "writer":list_to_str(movie.get("writer")),
-        "producer":list_to_str(movie.get("producer")),
-        "composer":list_to_str(movie.get("composer")) ,
-        "cinematographer":list_to_str(movie.get("cinematographer")),
-        "music_team": list_to_str(movie.get("music department")),
-        "distributors": list_to_str(movie.get("distributors")),
-        'release_date': date,
-        'year': movie.get('year'),
-        'genres': list_to_str(movie.get("genres")),
-        'poster': movie.get('full-size cover url'),
+        'title': movie.get('Title'),
+        'votes': movie.get('imdbVotes'),
+        "aka": movie.get("Title"),
+        "seasons": movie.get("totalSeasons", "N/A"),
+        "box_office": movie.get('BoxOffice', 'N/A'),
+        'localized_title': movie.get('Title'),
+        'kind': movie.get("Type", "movie"),
+        "imdb_id": imdb_id,
+        "cast": movie.get("Actors", "N/A"),
+        "runtime": movie.get("Runtime", "N/A"),
+        "countries": movie.get("Country", "N/A"),
+        "certificates": movie.get("Rated", "N/A"),
+        "languages": movie.get("Language", "N/A"),
+        "director": movie.get("Director", "N/A"),
+        "writer": movie.get("Writer", "N/A"),
+        "producer": "N/A",
+        "composer": "N/A",
+        "cinematographer": "N/A",
+        "music_team": "N/A",
+        "distributors": movie.get("Production", "N/A"),
+        'release_date': movie.get('Released', 'N/A'),
+        'year': movie.get('Year'),
+        'genres': movie.get('Genre', 'N/A'),
+        'poster': movie.get('Poster') if movie.get('Poster') != 'N/A' else None,
         'plot': plot,
-        'rating': str(movie.get("rating")),
-        'url':f'https://www.imdb.com/title/tt{movieid}'
+        'rating': movie.get("imdbRating", "N/A"),
+        'url': f'https://www.imdb.com/title/{imdb_id}'
     }
 
 async def broadcast_messages(user_id, message):
@@ -219,7 +229,7 @@ async def search_gagala(text):
     response = requests.get(url, headers=usr_agent)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'html.parser')
-    titles = soup.find_all( 'h3' )
+    titles = soup.find_all('h3')
     return [title.getText() for title in titles]
 
 async def get_settings(group_id):
@@ -273,13 +283,11 @@ def extract_user(message: Message) -> Union[int, str]:
             len(message.entities) > 1 and
             message.entities[1].type == enums.MessageEntityType.TEXT_MENTION
         ):
-           
             required_entity = message.entities[1]
             user_id = required_entity.user.id
             user_first_name = required_entity.user.first_name
         else:
             user_id = message.command[1]
-            # don't want to make a request -_-
             user_first_name = user_id
         try:
             user_id = int(user_id)
@@ -332,9 +340,7 @@ def split_quotes(text: str) -> List:
     else:
         return text.split(None, 1)
 
-    # 1 to avoid starting quote, and counter is exclusive so avoids ending
     key = remove_escapes(text[1:counter].strip())
-    # index will be in range, or `else` would have been executed and returned
     rest = text[counter + 1:].strip()
     if not key:
         key = text[0] + text[0]
@@ -349,19 +355,15 @@ def gfilterparser(text, keyword):
     i = 0
     alerts = []
     for match in BTN_URL_REGEX.finditer(text):
-        # Check if btnurl is escaped
         n_escapes = 0
         to_check = match.start(1) - 1
         while to_check > 0 and text[to_check] == "\\":
             n_escapes += 1
             to_check -= 1
-
-        # if even, not escaped -> create button
         if n_escapes % 2 == 0:
             note_data += text[prev:match.start(1)]
             prev = match.end(1)
             if match.group(3) == "buttonalert":
-                # create a thruple with button label, url, and newline status
                 if bool(match.group(5)) and buttons:
                     buttons[-1].append(InlineKeyboardButton(
                         text=match.group(2),
@@ -384,13 +386,11 @@ def gfilterparser(text, keyword):
                     text=match.group(2),
                     url=match.group(4).replace(" ", "")
                 )])
-
         else:
             note_data += text[prev:to_check]
             prev = match.start(1) - 1
     else:
         note_data += text[prev:]
-
     try:
         return note_data, buttons, alerts
     except:
@@ -405,19 +405,15 @@ def parser(text, keyword):
     i = 0
     alerts = []
     for match in BTN_URL_REGEX.finditer(text):
-        # Check if btnurl is escaped
         n_escapes = 0
         to_check = match.start(1) - 1
         while to_check > 0 and text[to_check] == "\\":
             n_escapes += 1
             to_check -= 1
-
-        # if even, not escaped -> create button
         if n_escapes % 2 == 0:
             note_data += text[prev:match.start(1)]
             prev = match.end(1)
             if match.group(3) == "buttonalert":
-                # create a thruple with button label, url, and newline status
                 if bool(match.group(5)) and buttons:
                     buttons[-1].append(InlineKeyboardButton(
                         text=match.group(2),
@@ -440,13 +436,11 @@ def parser(text, keyword):
                     text=match.group(2),
                     url=match.group(4).replace(" ", "")
                 )])
-
         else:
             note_data += text[prev:to_check]
             prev = match.start(1) - 1
     else:
         note_data += text[prev:]
-
     try:
         return note_data, buttons, alerts
     except:
@@ -477,14 +471,13 @@ def humanbytes(size):
     return str(round(size, 2)) + " " + Dic_powerN[n] + 'B'
 
 
-
 async def get_clone_shortlink(link, url, api):
     shortzy = Shortzy(api_key=api, base_site=url)
     link = await shortzy.convert(link)
     return link
-                           
+                            
 async def get_shortlink(chat_id, link):
-    settings = await get_settings(chat_id) #fetching settings for group
+    settings = await get_settings(chat_id)
     if 'shortlink' in settings.keys():
         URL = settings['shortlink']
         API = settings['shortlink_api']
@@ -514,7 +507,7 @@ async def get_shortlink(chat_id, link):
         return link
     
 async def get_tutorial(chat_id):
-    settings = await get_settings(chat_id) #fetching settings for group
+    settings = await get_settings(chat_id)
     return settings['tutorial']
         
 async def get_verify_shorted_link(link, url, api):
@@ -591,7 +584,7 @@ async def check_verification(bot, userid):
         EXP = VERIFIED[user.id]
         years, month, day = EXP.split('-')
         comp = date(int(years), int(month), int(day))
-        if comp<today:
+        if comp < today:
             return False
         else:
             return True
@@ -603,7 +596,7 @@ async def send_all(bot, userid, files, ident, chat_id, user_name, query):
     if 'is_shortlink' in settings.keys():
         ENABLE_SHORTLINK = settings['is_shortlink']
     else:
-        await save_group_settings(message.chat.id, 'is_shortlink', False)
+        await save_group_settings(chat_id, 'is_shortlink', False)
         ENABLE_SHORTLINK = False
     try:
         if ENABLE_SHORTLINK:
@@ -691,7 +684,8 @@ async def get_cap(settings, remaining_seconds, files, query, total_results, sear
                     plot=imdb['plot'],
                     rating=imdb['rating'],
                     url=imdb['url'],
-                    **locals()
+                    message=query.message, # Provides the real message object for Script.py
+                    remaining_seconds=remaining_seconds
                 )
                 cap+="<b>\n\n<u>🍿 Your Movie Files 👇</u></b>\n\n"
                 for file in files:
@@ -736,4 +730,3 @@ async def get_seconds(time_string):
         return value * 86400 * 365
     else:
         return 0
-

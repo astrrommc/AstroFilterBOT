@@ -28,6 +28,43 @@ BUTTONS1 = {}
 BUTTONS2 = {}
 SPELL_CHECK = {}
 
+def build_file_buttons(files, pre, key):
+    """Build file list buttons for button mode"""
+    btn = [
+        [InlineKeyboardButton(
+            text=f"[{get_size(file['file_size'])}] {' '.join(filter(lambda x: not x.startswith('[') and not x.startswith('@') and not x.startswith('www.'), file['file_name'].split()))}",
+            callback_data=f'{pre}#{file["file_id"]}'
+        )]
+        for file in files
+    ]
+    btn.insert(0, [
+        InlineKeyboardButton('ǫᴜᴀʟɪᴛʏ', callback_data=f"qualities#{key}"),
+        InlineKeyboardButton("ᴇᴘɪsᴏᴅᴇs", callback_data=f"episodes#{key}"),
+        InlineKeyboardButton("sᴇᴀsᴏɴs", callback_data=f"seasons#{key}")
+    ])
+    btn.insert(0, [
+        InlineKeyboardButton("𝐒𝐞𝐧𝐝 𝐀𝐥𝐥", callback_data=f"sendfiles#{key}"),
+        InlineKeyboardButton("ʟᴀɴɢᴜᴀɢᴇs", callback_data=f"languages#{key}"),
+        InlineKeyboardButton("ʏᴇᴀʀs", callback_data=f"years#{key}")
+    ])
+    return btn
+
+def build_file_buttons_text(files, pre, key):
+    """Build filter buttons for non-button mode"""
+    btn = []
+    btn.insert(0, [
+        InlineKeyboardButton('ǫᴜᴀʟɪᴛʏ', callback_data=f"qualities#{key}"),
+        InlineKeyboardButton("ᴇᴘɪsᴏᴅᴇs", callback_data=f"episodes#{key}"),
+        InlineKeyboardButton("sᴇᴀsᴏɴs", callback_data=f"seasons#{key}")
+    ])
+    btn.insert(0, [
+        InlineKeyboardButton("𝐒𝐞𝐧𝐝 𝐀𝐥𝐥", callback_data=f"sendfiles#{key}"),
+        InlineKeyboardButton("ʟᴀɴɢᴜᴀɢᴇs", callback_data=f"languages#{key}"),
+        InlineKeyboardButton("ʏᴇᴀʀs", callback_data=f"years#{key}")
+    ])
+    return btn
+
+
 @Client.on_message(filters.group & filters.text & filters.incoming)
 async def give_filter(client, message):
     if message.chat.id != SUPPORT_CHAT_ID:
@@ -447,7 +484,7 @@ async def episodes_cb_handler(client: Client, query: CallbackQuery):
                 row.append(
                     InlineKeyboardButton(
                         text=EPISODES[i+j].title(),
-                        callback_data=f"fe#{EPISODES[i+j].lower()}#{key}"
+                        callback_data=f"fe#{EPISODES[i+j]}#{key}"
                     )
                 )
         btn.append(row)
@@ -488,10 +525,16 @@ async def filter_episodes_cb_handler(client: Client, query: CallbackQuery):
     except:
         pass
     if lang != "homepage":
-        search = f"{search} {lang}"
+        search = f"{search} {lang.upper()}"  # FIX: use uppercase to match filenames like E01, E02
     BUTTONS[key] = search
 
     files, offset, total_results = await get_search_results(chat_id, search, offset=0, filter=True)
+    # Also try lowercase search if uppercase yields nothing
+    if not files and lang != "homepage":
+        search_lower = f"{FRESH.get(key, '')} {lang.lower()}"
+        files, offset, total_results = await get_search_results(chat_id, search_lower, offset=0, filter=True)
+        if files:
+            search = search_lower
     if not files:
         if lang == "homepage":
             files = temp.GETALL.get(key, [])
@@ -831,32 +874,39 @@ async def filter_seasons_cb_handler(client: Client, query: CallbackQuery):
     except:
         pass
     
-    searchagn = search
-    search1 = search
-    search2 = search
-    search = f"{search} {seas}"
-    BUTTONS0[key] = search
-    
-    files, _, _ = await get_search_results(chat_id, search, max_results=10)
-    files = [file for file in files if re.search(seas, file["file_name"], re.IGNORECASE)]
-    
-    seas1 = "s01" if seas == "season 1" else "s02" if seas == "season 2" else "s03" if seas == "season 3" else "s04" if seas == "season 4" else "s05" if seas == "season 5" else "s06" if seas == "season 6" else "s07" if seas == "season 7" else "s08" if seas == "season 8" else "s09" if seas == "season 9" else "s10" if seas == "season 10" else ""
-    search1 = f"{search1} {seas1}"
-    BUTTONS1[key] = search1
-    files1, _, _ = await get_search_results(chat_id, search1, max_results=10)
-    files1 = [file for file in files1 if re.search(seas1, file["file_name"], re.IGNORECASE)]
-    
-    if files1:
-        files.extend(files1)
-    
-    seas2 = "season 01" if seas == "season 1" else "season 02" if seas == "season 2" else "season 03" if seas == "season 3" else "season 04" if seas == "season 4" else "season 05" if seas == "season 5" else "season 06" if seas == "season 6" else "season 07" if seas == "season 7" else "season 08" if seas == "season 8" else "season 09" if seas == "season 9" else "s010"
-    search2 = f"{search2} {seas2}"
-    BUTTONS2[key] = search2
-    files2, _, _ = await get_search_results(chat_id, search2, max_results=10)
-    files2 = [file for file in files2 if re.search(seas2, file["file_name"], re.IGNORECASE)]
+    if seas == "homepage":
+        files = temp.GETALL.get(key, [])
+        if not files:
+            await query.answer("🚫 𝗡𝗼 𝗙𝗶𝗹𝗲 𝗪𝗲𝗿𝗲 𝗙𝗼𝘂𝗻𝗱 🚫", show_alert=True)
+            return
+        temp.GETALL[key] = files
+        settings = await get_settings(message.chat.id)
+        pre = 'filep' if settings['file_secure'] else 'file'
+        btn = build_file_buttons(files, pre, key) if settings["button"] else build_file_buttons_text(files, pre, key)
+        btn.append([InlineKeyboardButton(text="𝐍𝐎 𝐌𝐎𝐑𝐄 𝐏𝐀𝐆𝐄𝐒 𝐀𝐕𝐀𝐈𝐋𝐀𝐁𝐋𝐄", callback_data="pages")])
+        try:
+            await query.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(btn))
+        except MessageNotModified:
+            pass
+        await query.answer()
+        return
 
-    if files2:
-        files.extend(files2)
+    # Build base search without any previous season term
+    base_search = FRESH.get(key, "")
+    search = f"{base_search} {seas}"
+    BUTTONS0[key] = search
+
+    # Search with IGNORECASE to match S01, s01, Season 1 etc
+    files, offset, total_results = await get_search_results(chat_id, search, offset=0, filter=True)
+    files = [file for file in files if re.search(re.escape(seas), file["file_name"], re.IGNORECASE)]
+    
+    # If no results, try alternate formats
+    if not files:
+        # Try searching just the base query and filter by season regex
+        files_all, _, _ = await get_search_results(chat_id, base_search, max_results=50)
+        files = [file for file in files_all if re.search(re.escape(seas), file["file_name"], re.IGNORECASE)]
+        offset = ""
+        total_results = len(files)
         
     if not files:
         files = temp.GETALL.get(key, [])
@@ -944,11 +994,11 @@ async def qualities_cb_handler(client: Client, query: CallbackQuery):
         btn.append([
             InlineKeyboardButton(
                 text=QUALITIES[i].title(),
-                callback_data=f"fl#{QUALITIES[i].lower()}#{key}"
+                callback_data=f"fq#{QUALITIES[i]}#{key}"
             ),
             InlineKeyboardButton(
                 text=QUALITIES[i+1].title(),
-                callback_data=f"fl#{QUALITIES[i+1].lower()}#{key}"
+                callback_data=f"fq#{QUALITIES[i+1]}#{key}"
             ),
         ])
 
@@ -962,12 +1012,12 @@ async def qualities_cb_handler(client: Client, query: CallbackQuery):
     )
     req = query.from_user.id
     offset = 0
-    btn.append([InlineKeyboardButton(text="↭ ʙᴀᴄᴋ ᴛᴏ ʜᴏᴍᴇ ↭", callback_data=f"fl#homepage#{key}")])
+    btn.append([InlineKeyboardButton(text="↭ ʙᴀᴄᴋ ᴛᴏ ʜᴏᴍᴇ ↭", callback_data=f"fq#homepage#{key}")])
 
     await query.edit_message_reply_markup(InlineKeyboardMarkup(btn))
     
 
-@Client.on_callback_query(filters.regex(r"^fl#"))
+@Client.on_callback_query(filters.regex(r"^fq#"))
 async def filter_qualities_cb_handler(client: Client, query: CallbackQuery):
     _, qual, key = query.data.split("#")
     search = FRESH.get(key)
@@ -982,9 +1032,8 @@ async def filter_qualities_cb_handler(client: Client, query: CallbackQuery):
             )
     except:
         pass
-    searchagain = search
-    if lang != "homepage":
-        search = f"{search} {qual}" 
+    if qual != "homepage":
+        search = f"{search} {qual}"
     BUTTONS[key] = search
 
     files, offset, total_results = await get_search_results(chat_id, search, offset=0, filter=True)
@@ -1053,10 +1102,10 @@ async def filter_qualities_cb_handler(client: Client, query: CallbackQuery):
         btn.append(
             [InlineKeyboardButton(text="😶 ɴᴏ ᴍᴏʀᴇ ᴘᴀɢᴇꜱ ᴀᴠᴀɪʟᴀʙʟᴇ 😶",callback_data="pages")]
         )
-    if lang != "homepage":
+    if qual != "homepage":
         req = query.from_user.id
         offset = 0
-        btn.append([InlineKeyboardButton(text="↭ ʙᴀᴄᴋ ᴛᴏ ʜᴏᴍᴇ ↭", callback_data=f"next_{req}_{key}_{offset}")])
+        btn.append([InlineKeyboardButton(text="↭ ʙᴀᴄᴋ ᴛᴏ ʜᴏᴍᴇ ↭", callback_data=f"fq#homepage#{key}")])
     
     if not settings["button"]:
         cur_time = datetime.now(pytz.timezone('Asia/Kolkata')).time()
@@ -1093,7 +1142,7 @@ async def cb_handler(client: Client, query: CallbackQuery):
             
     elif query.data == "buy_premium":
         btn = [[            
-            InlineKeyboardButton("✅sᴇɴᴅ ʏᴏᴜʀ ᴘᴀʏᴍᴇɴᴛ ʀᴇᴄᴇɪᴘᴛ ʜᴇʀᴇ ✅", url = OWNER_LINK)
+            InlineKeyboardButton("✅sᴇɴᴅ ʏᴏᴜʀ ᴘᴀʏᴍᴇɴᴛ ʀᴇᴄᴇɪᴘᴛ ʜᴇʀᴇ ✅", url = OWNER_LNK)
         ]
             for admin in ADMINS
         ]
@@ -1908,12 +1957,20 @@ async def cb_handler(client: Client, query: CallbackQuery):
              InlineKeyboardButton('ꜰɪʟᴛᴇʀꜱ', callback_data='filters')
          ], [ 
              InlineKeyboardButton('ꜱʜᴀʀᴇ ᴛᴇxᴛ', callback_data='share'),
-             InlineKeyboardButton('ᴛᴛs', callback_data='tts')
+             InlineKeyboardButton('ᴛᴛs', callback_data='tts'),
+             InlineKeyboardButton('ᴀꜱᴋ', callback_data='ask_hlp'),
+             InlineKeyboardButton('ᴇᴅɪᴛ ᴘʜᴏᴛᴏ', callback_data='photo_hlp')
          ], [
              InlineKeyboardButton('ꜱᴛɪᴄᴋᴇʀ-ɪᴅ', callback_data='sticker'),
-             InlineKeyboardButton('ᴊ-ꜱᴏɴ', callback_data='json')
+             InlineKeyboardButton('ᴊ-ꜱᴏɴ', callback_data='json'),
+             InlineKeyboardButton('ᴠɪᴅᴇᴏ ᴅʟ', callback_data='video_hlp'),
+             InlineKeyboardButton('ꜱᴏɴɢ ᴅʟ', callback_data='song')
          ], [
-             InlineKeyboardButton('ᴄᴀʀʙᴏɴ', callback_data='carbon_help')
+             InlineKeyboardButton('ᴄᴀʀʙᴏɴ', callback_data='carbon_help'),
+             InlineKeyboardButton('ǫʀ ᴄᴏᴅᴇ', callback_data='qr_help'),
+             InlineKeyboardButton('ᴏᴄʀ', callback_data='ocr_help'),
+             InlineKeyboardButton('ɪᴍᴅʙ', callback_data='imdb')
+             
          ], [             
              InlineKeyboardButton('« Hᴏᴍᴇ »', callback_data='start')
         ]]
@@ -2270,6 +2327,120 @@ async def cb_handler(client: Client, query: CallbackQuery):
             reply_markup=reply_markup,
             parse_mode=enums.ParseMode.HTML
         )
+
+    elif query.data == "ocr_help":
+        btn = [[
+            InlineKeyboardButton("⟸ Bᴀᴄᴋ", callback_data="help")
+        ]]
+        reply_markup = InlineKeyboardMarkup(btn)
+        await query.message.edit_text(
+            text=(
+                "<b>ᴏᴄʀ</b>\n\n"
+                "Extract Text Content From an Image.\n\n"
+                "<b>Usage:</b>\n"
+                "• Send A Photo And Choose \'🔍𝗘𝘅𝘁𝗿𝗮𝗰𝘁 𝗧𝗲𝘅𝘁\'"
+            ),
+            reply_markup=reply_markup,
+            parse_mode=enums.ParseMode.HTML
+        )
+
+    elif query.data == "imdb":
+        btn = [[
+            InlineKeyboardButton("⟸ Bᴀᴄᴋ", callback_data="help")
+        ]]
+        reply_markup = InlineKeyboardMarkup(btn)
+        await query.message.edit_text(
+            text=(
+                "<b>ɪᴍᴅʙ</b>\n\n"
+                "Get Movie Information From IMDB.\n\n"
+                "<b>Usage:</b>\n"
+                "• <code>/imdb</code> Movie Name"
+            ),
+            reply_markup=reply_markup,
+            parse_mode=enums.ParseMode.HTML
+        )
+
+    elif query.data == "song":
+        btn = [[
+            InlineKeyboardButton("⟸ Bᴀᴄᴋ", callback_data="help")
+        ]]
+        reply_markup = InlineKeyboardMarkup(btn)
+        await query.message.edit_text(
+            text=(
+                "<b>ꜱᴏɴɢ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ 📥</b>\n\n"
+                "Download Song From Youtube.\n\n"
+                "<b>Usage:</b>\n"
+                "• <code>/song</code> Song Name or URL"
+            ),
+            reply_markup=reply_markup,
+            parse_mode=enums.ParseMode.HTML
+        )
+
+    elif query.data == "photo_hlp":
+        btn = [[
+            InlineKeyboardButton("⟸ Bᴀᴄᴋ", callback_data="help")
+        ]]
+        reply_markup = InlineKeyboardMarkup(btn)
+        await query.message.edit_text(
+            text=(
+                "<b>ᴘʜᴏᴛᴏ ᴇᴅɪᴛᴏʀ ✒️</b>\n\n"
+                "Make Quick Edits On Photos.\n\n"
+                "<b>Usage:</b>\n"
+                "• Send a Photo And Choose  \'✒️ 𝗘𝗱𝗶𝘁 𝗣𝗵𝗼𝘁𝗼\'"
+            ),
+            reply_markup=reply_markup,
+            parse_mode=enums.ParseMode.HTML
+        )
+
+    elif query.data == "ask_hlp":
+        btn = [[
+            InlineKeyboardButton("⟸ Bᴀᴄᴋ", callback_data="help")
+        ]]
+        reply_markup = InlineKeyboardMarkup(btn)
+        await query.message.edit_text(
+            text=(
+                "<b>ᴀꜱᴋ</b>\n\n"
+                "Ask Questions To AI.\n\n"
+                "<b>Usage:</b>\n"
+                "• <code>/ask</code> Your Question"
+            ),
+            reply_markup=reply_markup,
+            parse_mode=enums.ParseMode.HTML
+        )
+
+    elif query.data == "video_hlp":
+        btn = [[
+            InlineKeyboardButton("⟸ Bᴀᴄᴋ", callback_data="help")
+        ]]
+        reply_markup = InlineKeyboardMarkup(btn)
+        await query.message.edit_text(
+            text=(
+                "<b><b>ᴠɪᴅᴇᴏ ᴅᴏᴡɴʟᴏᴀᴅᴇʀ 📥</b></b>\n\n"
+                "Download Videos From Youtube\n\n"
+                "<b>Usage:</b>\n"
+                "• <code>/video</code> Video Name or URL"
+            ),
+            reply_markup=reply_markup,
+            parse_mode=enums.ParseMode.HTML
+        )
+
+    elif query.data == "qr_help":
+        btn = [[
+            InlineKeyboardButton("⟸ Bᴀᴄᴋ", callback_data="help")
+        ]]
+        reply_markup = InlineKeyboardMarkup(btn)
+        await query.message.edit_text(
+            text=(
+            "<b>ǫʀ ᴄᴏᴅᴇ ɢᴇɴᴇʀᴀᴛᴏʀ & sᴄᴀɴɴᴇʀ</b>\n\n"
+            "<b>Generate a QR code:</b>\n"
+            "• <code>/qr your text or link</code>\n\n"
+            "<b>Scan a QR code:</b>\n"
+            "• Reply to a photo with <code>/readqr</code>\n"
+            "• Or send a photo with caption <code>/scanqr</code>\n\n"
+        ),
+            reply_markup=reply_markup,
+            parse_mode=enums.ParseMode.HTML
+    )
 
     elif query.data == "song":
         btn = [[

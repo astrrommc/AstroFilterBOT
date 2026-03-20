@@ -25,17 +25,16 @@ async def initialize_clients():
                 await asyncio.sleep(2)
                 print("This will take some time, please wait...")
             
-            # OPTIMIZED CLIENT FOR MAXIMUM PC SPEED
             client = await Client(
                 name=str(client_id),
                 api_id=API_ID,
                 api_hash=API_HASH,
                 bot_token=token,
-                # FIXED: Increased workers to 300 to match main bot performance
-                workers=300, 
+                workers=300,
                 sleep_threshold=60,
                 no_updates=True,
-                in_memory=True
+                in_memory=True,
+                max_concurrent_transmissions=10,  # parallel connections per client
             ).start()
             
             work_loads[client_id] = 0
@@ -43,14 +42,12 @@ async def initialize_clients():
         except Exception:
             logging.error(f"Failed starting Client - {client_id} Error:", exc_info=True)
     
-    # Parallel initialization for faster bot startup
     clients = await asyncio.gather(*[start_client(i, token) for i, token in all_tokens.items()])
     multi_clients.update(dict(clients))
     
     if len(multi_clients) != 1:
         global MULTI_CLIENT
         MULTI_CLIENT = True
-        print("Multi-Client Mode Enabled (Maximum Speed Mode)")
+        print(f"Multi-Client Mode Enabled — {len(multi_clients)} clients active")
     else:
         print("No additional clients were initialized, using default client")
-            

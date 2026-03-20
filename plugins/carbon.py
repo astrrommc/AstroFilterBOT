@@ -23,10 +23,8 @@ async def carbon_func(b, message):
     
     else:
         return await message.reply_text(
-            "**How to use /carbon:**\n\n"
-            "1. Reply to any text message and send /carbon\n"
-            "2. Or send /carbon followed by your text\n\n"
-            "**Example:** `/carbon print('Hello World')`"
+            "**📇Carbon Generator**\n\n"
+            "**Usage:**\n`/carbon` Your Text"
         )
 
     m = await message.reply_text("ᴘʀᴏᴄᴇssɪɴɢ...")

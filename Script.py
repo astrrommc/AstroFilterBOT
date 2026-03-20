@@ -1,7 +1,3 @@
-# Don't Remove Credit @VJ_Bots
-# Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
 class script(object):
     START_TXT = """<b><blockquote>ʜᴇʟʟᴏ {} 👋,</blockquote>
     
@@ -105,9 +101,9 @@ Cᴏᴍᴍᴀɴᴅs Aɴᴅ Usᴀɢᴇ:
 
     EXTRAMOD_TXT = """ʜᴇʟᴘ: Exᴛʀᴀ Mᴏᴅᴜʟᴇs
 <b>ɴᴏᴛᴇ:</b>
- <b>✯ Maintained by : <a href={}>Owner</a></b>
+ <b>• Maintained by : <a href={}>Owner</a></b>
   
- <b>✯ Join here : <a href={}>Update Channel</a></b> 
+ <b>• Join here : <a href={}>Update Channel</a></b> 
   
  ./id - <code>ɢᴇᴛ ɪᴅ ᴏꜰ ᴀ ꜱᴘᴇᴄɪꜰɪᴇᴅ ᴜꜱᴇʀ.</ 
  code> 
@@ -148,31 +144,31 @@ Cᴏᴍᴍᴀɴᴅs Aɴᴅ Usᴀɢᴇ:
 • /delallg - <code>Tᴏ ᴅᴇʟᴇᴛᴇ ᴀʟʟ Gғɪʟᴛᴇʀs ғʀᴏᴍ ᴛʜᴇ ʙᴏᴛ's ᴅᴀᴛᴀʙᴀsᴇ.</code>
 • /deletefiles - <code>Tᴏ ᴅᴇʟᴇᴛᴇ CᴀᴍRɪᴘ ᴀɴᴅ PʀᴇDVD Fɪʟᴇs ғʀᴏᴍ ᴛʜᴇ ʙᴏᴛ's ᴅᴀᴛᴀʙᴀsᴇ.</code>"""
 
-    SEC_STATUS_TXT = """<b>★ Tᴏᴛᴀʟ Usᴇʀs: <code>{}</code>
-★ Tᴏᴛᴀʟ Cʜᴀᴛs: <code>{}</code>
-★ Tᴏᴛᴀʟ Fɪʟᴇs: <code>{}</code>
-★ Usᴇᴅ Sᴛᴏʀᴀɢᴇ: <code>{} MB</code>
-★ Fʀᴇᴇ Sᴛᴏʀᴀɢᴇ: <code>{} MB</code></b>"""
+    SEC_STATUS_TXT = """<b>◉ Tᴏᴛᴀʟ Usᴇʀs: <code>{}</code>
+◉ Tᴏᴛᴀʟ Cʜᴀᴛs: <code>{}</code>
+◉ Tᴏᴛᴀʟ Fɪʟᴇs: <code>{}</code>
+◉ Usᴇᴅ Sᴛᴏʀᴀɢᴇ: <code>{} MB</code>
+◉ Fʀᴇᴇ Sᴛᴏʀᴀɢᴇ: <code>{} MB</code></b>"""
     
     STATUS_TXT = """<b>Total Files From All DBs: <code>{}</code>
 
 USERS DB :-
-★ Tᴏᴛᴀʟ Usᴇʀs: <code>{}</code>
-★ Tᴏᴛᴀʟ Cʜᴀᴛs: <code>{}</code>
+◉ Tᴏᴛᴀʟ Usᴇʀs: <code>{}</code>
+◉ Tᴏᴛᴀʟ Cʜᴀᴛs: <code>{}</code>
 
 FILE FIRST DB :-
-★ Tᴏᴛᴀʟ Fɪʟᴇs: <code>{}</code>
-★ Usᴇᴅ Sᴛᴏʀᴀɢᴇ: <code>{} MB</code>
-★ Fʀᴇᴇ Sᴛᴏʀᴀɢᴇ: <code>{} MB</code>
+◉ Tᴏᴛᴀʟ Fɪʟᴇs: <code>{}</code>
+◉ Usᴇᴅ Sᴛᴏʀᴀɢᴇ: <code>{} MB</code>
+◉ Fʀᴇᴇ Sᴛᴏʀᴀɢᴇ: <code>{} MB</code>
 
 FILE SECOND DB :-
-★ Tᴏᴛᴀʟ Fɪʟᴇs: <code>{}</code>
-★ Usᴇᴅ Sᴛᴏʀᴀɢᴇ: <code>{} MB</code>
-★ Fʀᴇᴇ Sᴛᴏʀᴀɢᴇ: <code>{} MB</code>
+◉ Tᴏᴛᴀʟ Fɪʟᴇs: <code>{}</code>
+◉ Usᴇᴅ Sᴛᴏʀᴀɢᴇ: <code>{} MB</code>
+◉ Fʀᴇᴇ Sᴛᴏʀᴀɢᴇ: <code>{} MB</code>
 
 OTHER DB :-
-★ Usᴇᴅ Sᴛᴏʀᴀɢᴇ: <code>{} MB</code>
-★ Fʀᴇᴇ Sᴛᴏʀᴀɢᴇ: <code>{} MB</code></b>"""
+◉ Usᴇᴅ Sᴛᴏʀᴀɢᴇ: <code>{} MB</code>
+◉ Fʀᴇᴇ Sᴛᴏʀᴀɢᴇ: <code>{} MB</code></b>"""
     
     LOG_TEXT_G = """#NewGroup
 Gʀᴏᴜᴘ = {}(<code>{}</code>)
@@ -234,7 +230,7 @@ Nᴀᴍᴇ - {}"""
 🫣 For Movie Join First Then Click On Try Again Button 😅"""
 
     NORSLTS = """ 
-★ #𝗡𝗼𝗥𝗲𝘀𝘂𝗹𝘁𝘀 ★
+• #𝗡𝗼𝗥𝗲𝘀𝘂𝗹𝘁𝘀 •
 
 𝗜𝗗 <b>: {}</b>
 
@@ -247,10 +243,6 @@ Nᴀᴍᴇ - {}"""
 <b>⚙️ sɪᴢᴇ : {file_size}</b>""" 
 
     IMDB_TEMPLATE_TXT = """
-<b>Query: {qurey}
-
-IMDb Data:
-
 <b>🏷 Title</b>: <a href={url}>{title}</a>
 🎭 Genres: {genres}
 📆 Year: <a href={url}/releaseinfo>{year}</a>
@@ -260,10 +252,8 @@ IMDb Data:
 📆 Release Info : {release_date}
 🎛 Countries : <code>{countries}</code>
 
-
 ⏰Result Shown in: {remaining_seconds} <i>seconds</i> 🔥
-
-Requested by : {message.from_user.mention}</b>"""
+📬Requested by : {message.from_user.mention}</b>"""
     
     ALL_FILTERS = """
 <b>Hᴇʏ {}, Tʜᴇsᴇ ᴀʀᴇ ᴍʏ ᴛʜʀᴇᴇ ᴛʏᴘᴇs ᴏғ ғɪʟᴛᴇʀs.</b>"""
@@ -736,12 +726,6 @@ Example:- /set_caption 📕 File Name: {filename}
     STREAM_TXT = """<b><u>HOW TO GET STREAM AND DOWNLOAD LINK :</u>
 
 /stream - ɢᴇᴛ sᴛʀᴇᴀᴍᴀʙʟᴇ ᴀɴᴅ ᴅᴏᴡɴʟᴏᴀᴅᴀʙʟᴇ ʟɪɴᴋ ᴏғ ᴀɴʏ ғɪʟᴇ</b>"""
-
-
-# Don't Remove Credit @VJ_Bots
-# Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
 
     
 

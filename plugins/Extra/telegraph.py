@@ -1,52 +1,53 @@
-# Don't Remove Credit @VJ_Bots
-# Subscribe YouTube Channel For Amazing Bot @Tech_VJ
-# Ask Doubt on telegram @KingVJ01
-
 import os
-import requests
-import asyncio
+import aiohttp
+import logging
 from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, CallbackQuery
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-def upload_image_requests(image_path):
-    upload_url = "https://envs.sh"
+logger = logging.getLogger(__name__)
 
+async def upload_to_catbox_pc(file_path):
+    """Reliable upload for BSNL/Local Host users via Catbox"""
+    url = "https://catbox.moe/user/api.php"
+    
     try:
-        with open(image_path, 'rb') as file:
-            files = {'file': file} 
-            response = requests.post(upload_url, files=files)
-
-            if response.status_code == 200:
-                return response.text.strip() 
-            else:
-                return print(f"Upload failed with status code {response.status_code}")
-
+        async with aiohttp.ClientSession() as session:
+            with open(file_path, 'rb') as f:
+                # reqtype 'fileupload' is mandatory for Catbox
+                data = aiohttp.FormData()
+                data.add_field('reqtype', 'fileupload')
+                data.add_field('fileToUpload', f, filename=os.path.basename(file_path))
+                
+                async with session.post(url, data=data, timeout=60) as response:
+                    if response.status == 200:
+                        return (await response.text()).strip()
+                    
+                    err = await response.text()
+                    logger.error(f"Network Error: {response.status} | {err}")
+                    return None
     except Exception as e:
-        print(f"Error during upload: {e}")
+        logger.exception(f"Connection Failed: {e}")
         return None
 
 @Client.on_message(filters.command("telegraph") & filters.private)
-async def telegraph_upload(bot, update):
-    t_msg = await bot.ask(chat_id = update.from_user.id, text = "Now Send Me Your Photo Or Video Under 5MB To Get Media Link.")
-    if not t_msg.media:
-        return await update.reply_text("**Only Media Supported.**")
-    path = await t_msg.download()
-    uploading_message = await update.reply_text("<b>ᴜᴘʟᴏᴀᴅɪɴɢ...</b>")
+async def telegraph_bsnl(bot, update):
     try:
-        image_url = upload_image_requests(path)
-        if not image_url:
-            return await uploading_message.edit_text("**Failed to upload file.**")
-    except Exception as error:
-        await uploading_message.edit_text(f"**Upload failed: {error}**")
-        return
-    await uploading_message.edit_text(
-        text=f"<b>Link :-</b>\n\n<code>{image_url}</code>",
-        disable_web_page_preview=True,
-        reply_markup=InlineKeyboardMarkup( [[
-            InlineKeyboardButton(text="Open Link", url=image_url),
-            InlineKeyboardButton(text="Share Link", url=f"https://telegram.me/share/url?url={image_url}")
-            ],[
-            InlineKeyboardButton(text="✗ Close ✗", callback_data="close")
-            ]])
-        )
+        t_msg = await bot.ask(update.from_user.id, "<b>Send Photo/Video (Under 5MB).</b>")
+    except: return
+
+    status = await update.reply_text("<code>📥 Uᴘʟᴏᴀᴅɪɴɢ to Sᴇʀᴠᴇʀ...</code>")
+    path = await t_msg.download()
     
+    await status.edit_text("<code>📤 Pʀᴏᴄᴇssɪɴɢ...</code>")
+    image_url = await upload_to_catbox_pc(path)
+
+    if os.path.exists(path):
+        os.remove(path) 
+
+    if not image_url:
+        return await status.edit_text("<b>⚠️ Sᴏᴍᴇᴛʜɪɴɢ Wᴇɴᴛ Wʀᴏɴɢ\nCᴏɴᴛᴀᴄᴛ Oᴡɴᴇʀ:@DevAstrro")
+
+    await status.edit_text(
+        text=f"<b>✅ Link Created (Catbox):</b>\n<code>{image_url}</code>",
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("🌐 Open Link", url=image_url)]])
+    )

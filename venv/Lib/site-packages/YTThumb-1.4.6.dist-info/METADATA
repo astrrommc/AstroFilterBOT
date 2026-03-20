@@ -1,0 +1,73 @@
+Metadata-Version: 2.1
+Name: YTThumb
+Version: 1.4.6
+Summary: YouTube video thumbnail downloader
+Author: Fayas Noushad
+License: MIT
+Project-URL: Tracker, https://github.com/FayasNoushad/Youtube-Video-Thumbnail/issues
+Project-URL: Source, https://github.com/FayasNoushad/Youtube-Video-Thumbnail
+Classifier: Intended Audience :: Developers
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: requests
+
+# YouTube Video Thumbnail
+A simple youtube video thumbnail downloader with more qualities via youtube video link or id.
+
+## Installation
+
+```
+pip install YTThumb
+```
+
+## Usage
+
+### Get Thumbnail
+
+```py
+import ytthumb
+
+video = 'https://youtu.be/rokGy0huYEA'  # link/id
+
+# Basic Usage
+print(ytthumb.thumbnail(video))
+# => returns thumbnail link
+
+# Advanced Usage
+thumbnail = ytthumb.thumbnail(
+    video=video,
+    quality="sd"  # Not required
+)
+print(thumbnail)
+# returns thumbnail link
+```
+
+### Get Qualities
+
+```py
+import ytthumb
+
+print(ytthumb.qualities())  # json=True (default)
+# returns list of qualities with full form as json
+
+print(ytthumb.qualities(json=False))
+# returns list of qualities as list
+```
+
+### Download Thumbnail
+
+```py
+import ytthumb
+
+ytthumb.download_thumbnail(
+    video='https://youtu.be/rokGy0huYEA',
+    name='thumbnail.jpg',  # Not required
+    quality='sd'  # Not required
+)
+# Download thumbnail in 'thumbnail.jpg'
+```

@@ -21,11 +21,8 @@ async def save_group(bot, message):
             await bot.send_message(LOG_CHANNEL, script.LOG_TEXT_G.format(message.chat.title, message.chat.id, total, r_j))       
             await db.add_chat(message.chat.id, message.chat.title)
         if message.chat.id in temp.BANNED_CHATS:
-            # Inspired from a boat of a banana tree
-            buttons = [[
-                InlineKeyboardButton('Support', url=f'https://t.me/{SUPPORT_CHAT}')
-            ]]
-            reply_markup=InlineKeyboardMarkup(buttons)
+            buttons = [[InlineKeyboardButton('Support', url=f'https://t.me/{SUPPORT_CHAT}')]]
+            reply_markup = InlineKeyboardMarkup(buttons)
             k = await message.reply(
                 text='<b>CHAT NOT ALLOWED 🐞\n\nMy admins has restricted me from working here ! If you want to know more about it contact support..</b>',
                 reply_markup=reply_markup,
@@ -42,7 +39,7 @@ async def save_group(bot, message):
         ],[
             InlineKeyboardButton("Bᴏᴛ Oᴡɴᴇʀ", url=OWNER_LNK)
         ]]
-        reply_markup=InlineKeyboardMarkup(buttons)
+        reply_markup = InlineKeyboardMarkup(buttons)
         await message.reply_text(
             text=f"<b>Thankyou For Adding Me In {message.chat.title} 🔥 \n\nIf you have any questions & doubts about using me contact support.</b>",
             reply_markup=reply_markup
@@ -66,10 +63,13 @@ async def save_group(bot, message):
                     text=(script.MELCOW_ENG.format(u.mention, message.chat.title)),
                     reply_markup=InlineKeyboardMarkup(button),
                     parse_mode=enums.ParseMode.HTML
-                )  
+                )
         if settings["auto_delete"]:
             await asyncio.sleep(600)
-            await (temp.MELCOW['welcome']).delete()
+            try:
+                await (temp.MELCOW['welcome']).delete()
+            except:
+                pass
 
 @Client.on_message(filters.command('leave') & filters.user(ADMINS))
 async def leave_a_chat(bot, message):
@@ -82,18 +82,17 @@ async def leave_a_chat(bot, message):
         chat = chat
     try:
         buttons = [[
-            InlineKeyboardButton('Support Group',url=f'https://t.me/{SUPPORT_CHAT}'),
+            InlineKeyboardButton('Support Group', url=f'https://t.me/{SUPPORT_CHAT}'),
             InlineKeyboardButton("Bᴏᴛ Oᴡɴᴇʀ", url=OWNER_LNK)
         ],[
             InlineKeyboardButton('Use Me Here', url=f'https://t.me/{SUPPORT_CHAT}')
         ]]
-        reply_markup=InlineKeyboardMarkup(buttons)
+        reply_markup = InlineKeyboardMarkup(buttons)
         await bot.send_message(
             chat_id=chat,
             text='<b>Hello, \nMy admin has told me to leave from group, so i go! If you wanna add me again contact my Support Group or My Owner</b>',
             reply_markup=reply_markup,
         )
-
         await bot.leave_chat(chat)
         await message.reply(f"left the chat `{chat}`")
     except Exception as e:
@@ -123,12 +122,10 @@ async def disable_chat(bot, message):
     temp.BANNED_CHATS.append(int(chat_))
     await message.reply('Chat Successfully Disabled')
     try:
-        buttons = [[
-            InlineKeyboardButton('Support', url=f'https://t.me/{SUPPORT_CHAT}')
-        ]]
-        reply_markup=InlineKeyboardMarkup(buttons)
+        buttons = [[InlineKeyboardButton('Support', url=f'https://t.me/{SUPPORT_CHAT}')]]
+        reply_markup = InlineKeyboardMarkup(buttons)
         await bot.send_message(
-            chat_id=chat_, 
+            chat_id=chat_,
             text=f'<b>Hello, \nMy admin has told me to leave from group so i go! If you wanna add me again contact my support group.</b> \nReason : <code>{reason}</code>',
             reply_markup=reply_markup)
         await bot.leave_chat(chat_)
@@ -159,23 +156,31 @@ async def get_ststs(bot, message):
     try:
         total_users = await db.total_users_count()
         totl_chats = await db.total_chat_count()
-        filesp = col.count_documents({})
-        stats = vjdb.command('dbStats')
-        used_dbSize = (stats['dataSize']/(1024*1024))+(stats['indexSize']/(1024*1024))
-        free_dbSize = 512-used_dbSize
-        
+        filesp = await col.count_documents({})
+        stats = await vjdb.command('dbStats')
+        used_dbSize = (stats['dataSize']/(1024*1024)) + (stats['indexSize']/(1024*1024))
+        free_dbSize = 512 - used_dbSize
+
         if MULTIPLE_DATABASE == False:
-            await rju.edit(script.SEC_STATUS_TXT.format(total_users, totl_chats, filesp, round(used_dbSize, 2), round(free_dbSize, 2)))
-            return 
-            
-        totalsec = sec_col.count_documents({})   
-        stats2 = sec_db.command('dbStats')
-        used_dbSize2 = (stats2['dataSize']/(1024*1024))+(stats2['indexSize']/(1024*1024))
-        free_dbSize2 = 512-used_dbSize2
-        stats3 = mydb.command('dbStats')
-        used_dbSize3 = (stats3['dataSize']/(1024*1024))+(stats3['indexSize']/(1024*1024))
-        free_dbSize3 = 512-used_dbSize3
-        await rju.edit(script.STATUS_TXT.format((int(filesp)+int(totalsec)), total_users, totl_chats, filesp, round(used_dbSize, 2), round(free_dbSize, 2), totalsec, round(used_dbSize2, 2), round(free_dbSize2, 2), round(used_dbSize3, 2), round(free_dbSize3, 2)))
+            await rju.edit(script.SEC_STATUS_TXT.format(
+                total_users, totl_chats, filesp,
+                round(used_dbSize, 2), round(free_dbSize, 2)
+            ))
+            return
+
+        totalsec = await sec_col.count_documents({})
+        stats2 = await sec_db.command('dbStats')
+        used_dbSize2 = (stats2['dataSize']/(1024*1024)) + (stats2['indexSize']/(1024*1024))
+        free_dbSize2 = 512 - used_dbSize2
+        stats3 = await mydb.command('dbStats')
+        used_dbSize3 = (stats3['dataSize']/(1024*1024)) + (stats3['indexSize']/(1024*1024))
+        free_dbSize3 = 512 - used_dbSize3
+        await rju.edit(script.STATUS_TXT.format(
+            (int(filesp) + int(totalsec)), total_users, totl_chats,
+            filesp, round(used_dbSize, 2), round(free_dbSize, 2),
+            totalsec, round(used_dbSize2, 2), round(free_dbSize2, 2),
+            round(used_dbSize3, 2), round(free_dbSize3, 2)
+        ))
     except Exception as e:
         await rju.edit(f"Error - {e}")
 
@@ -226,7 +231,7 @@ async def ban_a_user(bot, message):
         await db.ban_user(k.id, reason)
         temp.BANNED_USERS.append(k.id)
         await message.reply(f"Successfully banned {k.mention}")
-    
+
 @Client.on_message(filters.command('unban') & filters.user(ADMINS))
 async def unban_a_user(bot, message):
     if len(message.command) == 1:
@@ -247,7 +252,7 @@ async def unban_a_user(bot, message):
     except PeerIdInvalid:
         return await message.reply("This is an invalid user, make sure ia have met him before.")
     except IndexError:
-        return await message.reply("Thismight be a channel, make sure its a user.")
+        return await message.reply("This might be a channel, make sure its a user.")
     except Exception as e:
         return await message.reply(f'Error - {e}')
     else:
@@ -257,10 +262,9 @@ async def unban_a_user(bot, message):
         await db.remove_ban(k.id)
         temp.BANNED_USERS.remove(k.id)
         await message.reply(f"Successfully unbanned {k.mention}")
-    
+
 @Client.on_message(filters.command('users') & filters.user(ADMINS))
 async def list_users(bot, message):
-    # https://t.me/GetTGLink/4184
     raju = await message.reply('Getting List Of Users')
     users = await db.get_all_users()
     out = "Users Saved In DB Are:\n\n"
@@ -292,6 +296,3 @@ async def list_chats(bot, message):
         with open('chats.txt', 'w+') as outfile:
             outfile.write(out)
         await message.reply_document('chats.txt', caption="List Of Chats")
-
-
-

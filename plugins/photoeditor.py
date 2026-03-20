@@ -1,11 +1,17 @@
-# Photo Editor Plugin for AstroFilterBOT
-import os, io, aiohttp
+# Photo Editor + OCR + QR Scanner — Fully fixed and improved
+import os
+import tempfile
+import aiohttp
+import random
 from PIL import Image, ImageFilter, ImageEnhance, ImageOps, ImageDraw
 from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, Message
 
 REMOVE_BG_API = "Qextfp8qdDKoqH2bTdRsPCZ1"
+USER_MODE = {}
+TESSERACT_CMD = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
+# ---------- BUTTONS ----------
 def get_buttons():
     return InlineKeyboardMarkup([
         [
@@ -33,183 +39,296 @@ def get_buttons():
         ]
     ])
 
-@Client.on_message(filters.photo & filters.private)
-async def photo_handler(client, message):
+def get_choice_buttons():
+    return InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("✒️ 𝗘𝗱𝗶𝘁 𝗣𝗵𝗼𝘁𝗼", callback_data="photo_edit_menu"),
+            InlineKeyboardButton("🔍 𝗘𝘅𝘁𝗿𝗮𝗰𝘁 𝗧𝗲𝘅𝘁", callback_data="photo_ocr"),
+        ],
+        [
+            InlineKeyboardButton("📱 𝗦𝗰𝗮𝗻 𝗤𝗥 𝗖𝗼𝗱𝗲", callback_data="photo_scanqr"),
+        ]
+    ])
+
+# ---------- SAFE EDIT ----------
+async def safe_edit(target_msg, text, reply_markup=None):
     try:
+        try:
+            return await target_msg.edit_text(text, reply_markup=reply_markup)
+        except Exception:
+            try:
+                return await target_msg.reply(text, reply_markup=reply_markup)
+            except Exception:
+                return None
+    except Exception:
+        return None
+
+# ---------- COMMANDS ----------
+@Client.on_message(filters.command("photoeditor"))
+async def photoeditor_cmd(client: Client, message: Message):
+    USER_MODE[message.from_user.id] = "edit"
+    await message.reply("✒️ 𝗣𝗵𝗼𝘁𝗼 𝗘𝗱𝗶𝘁𝗼𝗿\n\nSᴇɴᴅ A Pʜᴏᴛᴏ Tᴏ Mᴀᴋᴇ Eᴅɪᴛs.", quote=True)
+
+@Client.on_message(filters.command("ocr"))
+async def ocr_cmd(client: Client, message: Message):
+    USER_MODE[message.from_user.id] = "ocr"
+    await message.reply("🔍 𝗢𝗖𝗥\n\nSᴇɴᴅ A Pʜᴏᴛᴏ Tᴏ Exᴛʀᴀᴄᴛ Tᴇxᴛ.", quote=True)
+
+
+
+# ---------- PHOTO HANDLER ----------
+@Client.on_message(filters.photo & filters.private)
+async def photo_handler(client: Client, message: Message):
+    mode = USER_MODE.pop(message.from_user.id, None)
+
+    if mode == "edit":
         await message.reply(
-            text="**🖼 Photo Editor**\n\nSelect an effect to apply:",
-            quote=True,
-            reply_markup=get_buttons()
+            "✒️ 𝗣𝗵𝗼𝘁𝗼 𝗘𝗱𝗶𝘁𝗼𝗿\n\nSᴇʟᴇᴄᴛ ᴀɴ ᴇғғᴇᴄᴛ:",
+            reply_markup=get_buttons(),
+            quote=True
         )
+        return
+
+    if mode == "ocr":
+        status = await message.reply("🔍 Exᴛʀᴀᴄᴛɪɴɢ ᴛᴇxᴛ...", quote=True)
+        await run_ocr(client, message, status)
+        return
+
+    if mode == "scanqr":
+        status = await message.reply("📱 Sᴄᴀɴɴɪɴɢ QR Cᴏᴅᴇ...", quote=True)
+        await run_scanqr(client, message, status)
+        return
+
+    # default — show choice
+    await message.reply(
+        "📸 Wʜᴀᴛ ᴅᴏ ʏᴏᴜ ᴡᴀɴᴛ ᴛᴏ ᴅᴏ ᴡɪᴛʜ ᴛʜɪs ᴘʜᴏᴛᴏ?",
+        reply_markup=get_choice_buttons(),
+        quote=True
+    )
+
+# ---------- MENU CALLBACKS ----------
+@Client.on_callback_query(filters.regex(r"^photo_edit_menu$"))
+async def show_edit_menu(client: Client, query: CallbackQuery):
+    original = query.message.reply_to_message
+    if not original or not original.photo:
+        return await query.answer("Original photo not found!", show_alert=True)
+    await query.answer()
+    try:
+        await query.message.edit("✒️ 𝗣𝗵𝗼𝘁𝗼 𝗘𝗱𝗶𝘁𝗼𝗿\n\nSᴇʟᴇᴄᴛ ᴀɴ ᴇғғᴇᴄᴛ:", reply_markup=get_buttons())
+    except Exception:
+        await query.message.reply("✒️ 𝗣𝗵𝗼𝘁𝗼 𝗘𝗱𝗶𝘁𝗼𝗿\n\nSᴇʟᴇᴄᴛ ᴀɴ ᴇғғᴇᴄᴛ:", reply_markup=get_buttons(), quote=True)
+
+@Client.on_callback_query(filters.regex(r"^photo_ocr$"))
+async def ocr_button(client: Client, query: CallbackQuery):
+    original = query.message.reply_to_message
+    if not original or not original.photo:
+        return await query.answer("Original photo not found!", show_alert=True)
+    await query.answer("Exᴛʀᴀᴄᴛɪɴɢ ᴛᴇxᴛ...")
+    await safe_edit(query.message, "🔍 Exᴛʀᴀᴄᴛɪɴɢ ᴛᴇxᴛ...")
+    await run_ocr(client, original, query.message)
+
+@Client.on_callback_query(filters.regex(r"^photo_scanqr$"))
+async def scanqr_button(client: Client, query: CallbackQuery):
+    original = query.message.reply_to_message
+    if not original or not original.photo:
+        return await query.answer("Original photo not found!", show_alert=True)
+    await query.answer("Sᴄᴀɴɴɪɴɢ QR...")
+    await safe_edit(query.message, "📱 Sᴄᴀɴɴɪɴɢ QR Cᴏᴅᴇ...")
+    await run_scanqr(client, original, query.message)
+
+@Client.on_callback_query(filters.regex(r"^close_data$"))
+async def close_menu(client: Client, query: CallbackQuery):
+    try:
+        await query.message.delete()
+    except Exception:
+        pass
+
+# ---------- OCR ----------
+async def run_ocr(client: Client, photo_message: Message, reply_target):
+    try:
+        import pytesseract
+        pytesseract.pytesseract.tesseract_cmd = TESSERACT_CMD
     except Exception as e:
-        print(e)
+        await safe_edit(reply_target, f"❌ Tesseract import error: `{e}`")
+        return
 
-def apply_bright(img):
-    return ImageEnhance.Brightness(img).enhance(1.5)
+    path = None
+    try:
+        path = await client.download_media(photo_message.photo.file_id)
+        img = Image.open(path)
+        text = pytesseract.image_to_string(img).strip()
+        if not text:
+            text = "❌ No text found."
+        if len(text) > 4000:
+            text = text[:4000] + "\n\n_(Text truncated)_"
+        await safe_edit(reply_target, f"🔍 Exᴛʀᴀᴄᴛᴇᴅ Tᴇxᴛ:\n\n`{text}`")
+    except Exception as e:
+        await safe_edit(reply_target, f"❌ OCR Error: `{e}`")
+    finally:
+        if path and os.path.exists(path):
+            try:
+                os.remove(path)
+            except Exception:
+                pass
 
+# ---------- QR SCANNER ----------
+async def run_scanqr(client: Client, photo_message: Message, reply_target):
+    path = None
+    try:
+        from pyzbar.pyzbar import decode
+        path = await client.download_media(photo_message.photo.file_id)
+        img = Image.open(path)
+        decoded = decode(img)
+        if decoded:
+            results = "\n\n".join([f"**Result {i+1}:** `{d.data.decode('utf-8')}`" for i, d in enumerate(decoded)])
+            await safe_edit(reply_target, f"📱 QR Cᴏᴅᴇ Sᴄᴀɴɴᴇᴅ!\n\n{results}")
+        else:
+            await safe_edit(reply_target, "❌ No QR code found in this image.")
+    except Exception as e:
+        await safe_edit(reply_target, f"❌ QR Scan Error: `{e}`")
+    finally:
+        if path and os.path.exists(path):
+            try:
+                os.remove(path)
+            except Exception:
+                pass
+
+# ---------- EFFECTS ----------
+def apply_bright(img): return ImageEnhance.Brightness(img).enhance(1.5)
 def apply_mix(img):
-    r, g, b = img.split() if img.mode == 'RGB' else img.convert('RGB').split()
-    return Image.merge('RGB', (b, r, g))
-
-def apply_bw(img):
-    return img.convert('L').convert('RGB')
-
+    img = img.convert("RGB"); r, g, b = img.split(); return Image.merge("RGB", (b, r, g))
+def apply_bw(img): return img.convert("L").convert("RGB")
 def apply_circle(img):
-    img = img.convert('RGBA')
-    size = min(img.size)
-    mask = Image.new('L', img.size, 0)
-    draw = ImageDraw.Draw(mask)
-    x0 = (img.width - size) // 2
-    y0 = (img.height - size) // 2
-    draw.ellipse([x0, y0, x0 + size, y0 + size], fill=255)
-    img.putalpha(mask)
-    result = Image.new('RGBA', img.size, (255, 255, 255, 255))
-    result.paste(img, mask=img.split()[3])
-    return result.convert('RGB')
-
-def apply_blur(img):
-    return img.filter(ImageFilter.GaussianBlur(radius=3))
-
+    img = img.convert("RGBA"); size = min(img.size)
+    mask = Image.new("L", img.size, 0); draw = ImageDraw.Draw(mask)
+    x0 = (img.width - size) // 2; y0 = (img.height - size) // 2
+    draw.ellipse([x0, y0, x0+size, y0+size], fill=255); img.putalpha(mask)
+    bg = Image.new("RGBA", img.size, (255,255,255,255)); bg.paste(img, mask=img.split()[3])
+    return bg.convert("RGB")
+def apply_blur(img): return img.filter(ImageFilter.GaussianBlur(radius=3))
 def apply_border(img):
-    bordered = ImageOps.expand(img.convert('RGB'), border=20, fill=(255, 255, 255))
-    return ImageOps.expand(bordered, border=5, fill=(0, 0, 0))
-
-def apply_rotate(img):
-    return img.rotate(90, expand=True)
-
-def apply_contrast(img):
-    return ImageEnhance.Contrast(img).enhance(2.0)
-
+    b = ImageOps.expand(img.convert("RGB"), border=20, fill=(255,255,255))
+    return ImageOps.expand(b, border=5, fill=(0,0,0))
+def apply_rotate(img): return img.rotate(90, expand=True)
+def apply_contrast(img): return ImageEnhance.Contrast(img).enhance(2.0)
 def apply_sepia(img):
-    img = img.convert('RGB')
-    w, h = img.size
-    pixels = img.load()
-    for i in range(w):
-        for j in range(h):
-            r, g, b = pixels[i, j]
-            tr = int(0.393*r + 0.769*g + 0.189*b)
-            tg = int(0.349*r + 0.686*g + 0.168*b)
-            tb = int(0.272*r + 0.534*g + 0.131*b)
-            pixels[i, j] = (min(tr,255), min(tg,255), min(tb,255))
+    img = img.convert("RGB"); px = img.load()
+    for x in range(img.width):
+        for y in range(img.height):
+            r,g,b = px[x,y]
+            px[x,y] = (min(int(0.393*r+0.769*g+0.189*b),255), min(int(0.349*r+0.686*g+0.168*b),255), min(int(0.272*r+0.534*g+0.131*b),255))
     return img
-
 def apply_pencil(img):
-    img = img.convert('L')
-    inv = ImageOps.invert(img)
-    blur = inv.filter(ImageFilter.GaussianBlur(radius=10))
-    result = Image.fromarray(
-        __import__('numpy').divide(img, 255 - __import__('numpy').array(blur) + 1, dtype='float') * 255
-    ).convert('L')
-    return result.convert('RGB')
-
+    import numpy as np
+    g = img.convert("L"); inv = ImageOps.invert(g); bl = inv.filter(ImageFilter.GaussianBlur(10))
+    arr = np.array(g, dtype=float); ba = np.array(bl, dtype=float)
+    return Image.fromarray((arr/(255-ba+1)*255).clip(0,255).astype('uint8')).convert("RGB")
 def apply_cartoon(img):
-    img = img.convert('RGB')
-    edges = img.filter(ImageFilter.FIND_EDGES).convert('L')
-    smooth = img.filter(ImageFilter.SMOOTH_MORE)
-    edges_rgb = edges.convert('RGB')
-    return Image.blend(smooth, edges_rgb, alpha=0.3)
-
-def apply_inverted(img):
-    return ImageOps.invert(img.convert('RGB'))
-
+    s = img.filter(ImageFilter.SMOOTH_MORE); e = img.filter(ImageFilter.FIND_EDGES).convert("RGB")
+    return Image.blend(s.convert("RGB"), e, alpha=0.3)
+def apply_inverted(img): return ImageOps.invert(img.convert("RGB"))
 def apply_glitch(img):
-    import random
-    img = img.convert('RGB')
-    arr = __import__('numpy').array(img)
+    import numpy as np
+    arr = np.array(img.convert("RGB")); h = arr.shape[0]
     for _ in range(10):
-        y = random.randint(0, arr.shape[0] - 1)
-        shift = random.randint(-20, 20)
-        arr[y] = __import__('numpy').roll(arr[y], shift, axis=0)
+        y = random.randint(0, max(0,h-1)); arr[y] = np.roll(arr[y], random.randint(-50,50), axis=0)
     return Image.fromarray(arr)
 
-async def apply_removebg(img, file_path):
+async def apply_removebg(file_path):
     async with aiohttp.ClientSession() as session:
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             data = aiohttp.FormData()
-            data.add_field('image_file', f, filename='image.jpg', content_type='image/jpeg')
-            data.add_field('size', 'auto')
-            async with session.post(
-                'https://api.remove.bg/v1.0/removebg',
-                data=data,
-                headers={'X-Api-Key': REMOVE_BG_API},
-                timeout=aiohttp.ClientTimeout(total=30)
-            ) as resp:
-                if resp.status == 200:
-                    return await resp.read()
-                else:
-                    err = await resp.text()
-                    raise Exception(f"Remove.bg error: {err}")
+            data.add_field("image_file", f, filename="image.jpg", content_type="image/jpeg")
+            data.add_field("size", "auto")
+            async with session.post("https://api.remove.bg/v1.0/removebg", data=data,
+                headers={"X-Api-Key": REMOVE_BG_API}, timeout=aiohttp.ClientTimeout(total=30)) as resp:
+                if resp.status == 200: return await resp.read()
+                raise Exception(f"remove.bg failed ({resp.status}): {await resp.text()}")
+
+def make_sticker_from_image(in_path, out_path):
+    img = Image.open(in_path).convert("RGBA"); img.thumbnail((512,512), Image.LANCZOS)
+    canvas = Image.new("RGBA", (512,512), (0,0,0,0))
+    canvas.paste(img, ((512-img.width)//2, (512-img.height)//2), img)
+    canvas.save(out_path, "WEBP")
 
 EFFECTS = {
-    'bright': apply_bright,
-    'mix': apply_mix,
-    'b|w': apply_bw,
-    'circle': apply_circle,
-    'blur': apply_blur,
-    'border': apply_border,
-    'rotate': apply_rotate,
-    'contrast': apply_contrast,
-    'sepia': apply_sepia,
-    'pencil': apply_pencil,
-    'cartoon': apply_cartoon,
-    'inverted': apply_inverted,
-    'glitch': apply_glitch,
+    "bright": apply_bright, "mix": apply_mix, "b|w": apply_bw,
+    "circle": apply_circle, "blur": apply_blur, "border": apply_border,
+    "rotate": apply_rotate, "contrast": apply_contrast, "sepia": apply_sepia,
+    "pencil": apply_pencil, "cartoon": apply_cartoon, "inverted": apply_inverted,
+    "glitch": apply_glitch,
 }
 
-@Client.on_callback_query(filters.regex('^(bright|mix|b\|w|circle|blur|border|stick|rotate|contrast|sepia|pencil|cartoon|inverted|glitch|removebg)$'))
-async def photo_edit_callback(client, query: CallbackQuery):
+# ---------- EFFECT CALLBACK ----------
+@Client.on_callback_query(filters.regex(r"^(bright|mix|b\|w|circle|blur|border|stick|rotate|contrast|sepia|pencil|cartoon|inverted|glitch|removebg)$"))
+async def photo_edit_callback(client: Client, query: CallbackQuery):
     effect = query.data
     msg = query.message
     original = msg.reply_to_message
 
     if not original or not original.photo:
-        return await query.answer("Original photo not found!", show_alert=True)
+        return await query.answer("Original photo not found", show_alert=True)
 
-    await query.answer("Processing...")
-    status = await msg.edit_text("⏳ **Processing your image...**")
-
-    file_path = await client.download_media(original.photo.file_id)
-
+    await query.answer("⏳ Pʀᴏᴄᴇssɪɴɢ...")
+    status_msg = None
     try:
-        if effect == 'removebg':
-            result_bytes = await apply_removebg(None, file_path)
-            out_path = file_path + "_nobg.png"
-            with open(out_path, 'wb') as f:
-                f.write(result_bytes)
-            await original.reply_document(
-                out_path,
-                caption="✅ **Background Removed!**\n\n@Astro_AF_bot"
-            )
-            os.remove(out_path)
-        elif effect == 'stick':
-            # Convert to sticker (WebP)
-            img = Image.open(file_path).convert('RGBA')
-            img.thumbnail((512, 512))
-            out_path = file_path + ".webp"
-            img.save(out_path, 'WEBP')
-            await original.reply_sticker(out_path)
-            os.remove(out_path)
-        else:
-            img = Image.open(file_path).convert('RGB')
-            fn = EFFECTS.get(effect)
-            if fn:
-                result = fn(img)
-            else:
-                result = img
-            out_path = file_path + f"_{effect.replace("|", "_")}.jpg"
-            result.convert('RGB').save(out_path, 'JPEG', quality=95)
-            await original.reply_photo(
-                out_path,
-                caption=f"✅ **Effect: {effect.upper()}**\n\n@Astro_AF_bot",
-                reply_markup=get_buttons()
-            )
-            os.remove(out_path)
+        try:
+            status_msg = await msg.edit_text("⏳ Pʀᴏᴄᴇssɪɴɢ...")
+        except Exception:
+            status_msg = await msg.reply("⏳ Pʀᴏᴄᴇssɪɴɢ...", quote=True)
+    except Exception:
+        status_msg = None
 
-        await status.delete()
+    src_path = None
+    try:
+        src_path = await client.download_media(original.photo.file_id)
+
+        if effect == "stick":
+            with tempfile.NamedTemporaryFile(suffix=".webp", delete=False) as tmp:
+                tmp_path = tmp.name
+            try:
+                make_sticker_from_image(src_path, tmp_path)
+                await original.reply_sticker(tmp_path)
+            finally:
+                if os.path.exists(tmp_path): os.remove(tmp_path)
+
+        elif effect == "removebg":
+            try:
+                data = await apply_removebg(src_path)
+                with tempfile.NamedTemporaryFile(suffix="_nobg.png", delete=False) as tmp:
+                    tmp.write(data); tmp_path = tmp.name
+                try:
+                    await original.reply_document(tmp_path, caption="✅ Background removed")
+                finally:
+                    if os.path.exists(tmp_path): os.remove(tmp_path)
+            except Exception as e:
+                await safe_edit(status_msg or msg, f"❌ Remove.bg error: `{e}`")
+        else:
+            func = EFFECTS.get(effect)
+            if not func:
+                await safe_edit(status_msg or msg, "❌ Effect not implemented.")
+            else:
+                img = Image.open(src_path).convert("RGB")
+                result = func(img)
+                safe_effect = effect.replace("|", "w")
+                with tempfile.NamedTemporaryFile(suffix=f"_{safe_effect}.jpg", delete=False) as tmpf:
+                    tmp_path = tmpf.name
+                    result.convert("RGB").save(tmp_path, "JPEG", quality=95)
+                try:
+                    await original.reply_photo(tmp_path, caption=f"✅ Effect: {effect.upper()}", reply_markup=get_buttons())
+                finally:
+                    if os.path.exists(tmp_path): os.remove(tmp_path)
+
+        if status_msg:
+            try: await status_msg.delete()
+            except Exception: pass
 
     except Exception as e:
-        await status.edit(f"❌ **Error:** `{e}`")
-        print(f"Photo editor error: {e}")
+        try:
+            await safe_edit(status_msg or msg, f"❌ Error: `{e}`")
+        except Exception:
+            pass
     finally:
-        if os.path.exists(file_path):
-            os.remove(file_path)
+        if src_path and os.path.exists(src_path):
+            try: os.remove(src_path)
+            except Exception: pass
